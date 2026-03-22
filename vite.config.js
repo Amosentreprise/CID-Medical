@@ -8,15 +8,16 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'autoUpdate', // C'est parfait, l'app se met à jour toute seule
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-able-icon.svg'],
       manifest: {
-        name: 'CID Medical - Calendrier',
-        short_name: 'CID',
-        description: 'Gestion intelligente des disponibilités médicales',
-        theme_color: '#0f172a', // La couleur de la barre d'état sur mobile
-        background_color: '#0f172a',
-        display: 'standalone', // Pour que l'app s'ouvre sans la barre d'adresse du navigateur
+        name: 'CID Medical by Belle Imagerie', // On ajoute la signature ici aussi
+        short_name: 'CID Medical',
+        description: 'Optimisation du flux médical et suppression des retards d\'interprétation',
+        theme_color: '#020617', // CHANGÉ : On utilise le noir profond de ta nouvelle Landing
+        background_color: '#020617', // CHANGÉ : Pour éviter le flash blanc au démarrage
+        display: 'standalone',
+        orientation: 'portrait', // Optionnel : force l'app en mode portrait sur mobile
         icons: [
           {
             src: 'pwa-192x192.png',
