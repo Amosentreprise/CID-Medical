@@ -14,7 +14,8 @@ import {
 import { format, addWeeks, startOfToday, addDays, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import toast, { Toaster } from 'react-hot-toast';
-
+const NOTIFICATION_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"; 
+// Un "bip" discret et médical
 const daysOfWeek = [
   { label: 'Lun', value: 1 }, { label: 'Mar', value: 2 }, { label: 'Mer', value: 3 },
   { label: 'Jeu', value: 4 }, { label: 'Ven', value: 5 }, { label: 'Sam', value: 6 }, { label: 'Dim', value: 0 }
@@ -39,29 +40,51 @@ const DoctorDashboard = () => {
   const doctorName = user?.fullName || user?.displayName || "Médecin";
 
   // --- SYSTÈME DE NOTIFICATION OPTIMISÉ ---
-  const sendNotification = (title, body) => {
+ const sendNotification = (title, body) => {
     if (Notification.permission === "granted") {
+      // 1. Jouer le son
+      const audio = new Audio(NOTIFICATION_SOUND);
+      audio.play().catch(e => console.log("Audio bloqué par le navigateur"));
+
+      // 2. Déclencher la vibration (si supporté par Android)
+      if ("vibrate" in navigator) {
+        navigator.vibrate([200, 100, 200]);
+      }
+
+      // 3. Afficher la bannière
       new Notification(title, {
         body,
         icon: "/pwa.png",
         badge: "/pwa.png",
-        vibrate: [200, 100, 200]
+        tag: "cid-medical-alert", // Évite d'empiler 50 notifications
+        requireInteraction: true // Garde la notif visible jusqu'à ce qu'il clique
       });
     }
   };
-
-  const checkUpcomingSlots = () => {
+const checkUpcomingSlots = () => {
     const now = new Date();
     const thirtyMinutesFromNow = new Date(now.getTime() + 30 * 60000);
 
     slots.forEach(slot => {
       const startTime = parseISO(slot.startTime);
-      if (startTime > now && startTime <= thirtyMinutesFromNow && !notifiedSlots.has(slot.id)) {
+      
+      // ALERTE 30 MIN AVANT
+      if (startTime > now && startTime <= thirtyMinutesFromNow && !notifiedSlots.has(`${slot.id}-30`)) {
         sendNotification(
-          "⏳ Créneau Proche - CID Medical",
-          `Dr. ${doctorName}, votre vacation de ${format(startTime, 'HH:mm')} commence bientôt.`
+          "⏳ Rappel : 30 minutes",
+          `Dr. ${doctorName}, votre séance de ${format(startTime, 'HH:mm')} approche.`
         );
-        setNotifiedSlots(prev => new Set(prev).add(slot.id));
+        setNotifiedSlots(prev => new Set(prev).add(`${slot.id}-30`));
+      }
+
+      // ALERTE À L'HEURE PILE (marge de 60s pour le scanneur)
+      const diffInSeconds = Math.abs((startTime.getTime() - now.getTime()) / 1000);
+      if (diffInSeconds < 60 && !notifiedSlots.has(`${slot.id}-now`)) {
+        sendNotification(
+          "🚨 DÉBUT DU CRÉNEAU",
+          `Il est ${format(startTime, 'HH:mm')}. Votre vacation commence maintenant.`
+        );
+        setNotifiedSlots(prev => new Set(prev).add(`${slot.id}-now`));
       }
     });
   };
@@ -178,7 +201,26 @@ const DoctorDashboard = () => {
             <h1 className="text-xl font-black tracking-tight">CID <span className="text-blue-500">Medical</span></h1>
           </div>
           <div className="flex items-center gap-4">
-             <button onClick={requestNotificationPermission} className="p-3 rounded-2xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/20 shadow-lg"><Bell size={20} /></button>
+<motion.button 
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.9, rotate: -10 }} // Sensation de bouton physique
+  onClick={async () => {
+    const loadingToast = toast.loading("Activation des alertes...");
+    try {
+      await requestNotificationPermission();
+      // On joue un petit son test pour débloquer l'audio sur mobile
+      const audio = new Audio(NOTIFICATION_SOUND);
+      audio.muted = true; 
+      audio.play(); 
+      toast.success("Alertes configurées !", { id: loadingToast });
+    } catch (err) {
+      toast.error("Erreur d'activation", { id: loadingToast });
+    }
+  }} 
+  className="p-3 rounded-2xl bg-blue-500/10 text-blue-400 hover:bg-blue-600 hover:text-white transition-all border border-blue-500/20 shadow-lg active:bg-blue-700"
+>
+  <Bell size={20} className={Notification.permission === "granted" ? "fill-blue-400 group-hover:fill-white" : ""} />
+</motion.button>
              <button onClick={() => { auth.signOut(); navigate('/auth'); }} className="p-3 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20"><LogOut size={20} /></button>
           </div>
         </div>
