@@ -9,26 +9,39 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // On récupère aussi le rôle (admin ou médecin) stocké dans Firestore
+ useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
+      try {
         const docRef = doc(db, "users", firebaseUser.uid);
         const docSnap = await getDoc(docRef);
         
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          ...docSnap.data()
-        });
-      } else {
-        setUser(null);
+        if (docSnap.exists()) {
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            ...docSnap.data()
+          });
+        } else {
+          // Si le doc Firestore n'existe pas encore (inscription en cours)
+          // On met au moins les infos de base pour éviter le crash
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            role: 'doctor' // Rôle par défaut
+          });
+        }
+      } catch (error) {
+        console.error("Erreur AuthProvider:", error);
       }
-      setLoading(false);
-    });
+    } else {
+      setUser(null);
+    }
+    setLoading(false);
+  });
 
-    return () => unsubscribe();
-  }, []);
+  return () => unsubscribe();
+}, []);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>

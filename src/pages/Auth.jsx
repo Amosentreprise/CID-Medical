@@ -21,42 +21,53 @@ const Auth = () => {
     
     try {
       if (isLogin) {
+        // --- LOGIQUE CONNEXION ---
         const res = await signInWithEmailAndPassword(auth, email, password);
         const userSnap = await getDoc(doc(db, "users", res.user.uid));
         
         if (userSnap.exists()) {
           const userData = userSnap.data();
-         // Version sécurisée qui vérifie si le nom existe avant de découper
-const firstName = userData.fullName ? userData.fullName.split(' ')[0] : 'admin';
-toast.success(`Bienvenue, Dr. ${firstName} !`, { id: loadingToast });
+          const firstName = userData.fullName ? userData.fullName.split(' ')[0] : 'Docteur';
+          toast.success(`Bienvenue, Dr. ${firstName} !`, { id: loadingToast });
           
           userData.role === 'admin' ? navigate('/admin') : navigate('/doctor');
         }
       } else {
-        // Validation simple du téléphone
+        // --- LOGIQUE INSCRIPTION ---
         if (phone.length < 8) {
           throw new Error("Le numéro de téléphone semble invalide.");
         }
 
+        // 1. Création du compte Auth
         const res = await createUserWithEmailAndPassword(auth, email, password);
         
+        // 2. Préparation des données Firestore
         const userData = {
           uid: res.user.uid,
           fullName,
           email,
-          phone, // On enregistre le téléphone ici
+          phone,
           role: 'doctor',
           createdAt: new Date().toISOString()
         };
 
+        // 3. Écriture dans la base de données (on attend que ce soit fini)
         await setDoc(doc(db, "users", res.user.uid), userData);
         
         toast.success('Compte créé avec succès !', { id: loadingToast });
-        navigate('/doctor');
+
+        // 4. On attend un tout petit peu que le système se synchronise avant de naviguer
+        setTimeout(() => {
+          navigate('/doctor');
+        }, 600);
       }
     } catch (err) {
       console.error(err);
-      toast.error(err.message || "Erreur d'authentification", { id: loadingToast });
+      let message = "Erreur d'authentification";
+      if (err.code === 'auth/email-already-in-use') message = "Cet email est déjà utilisé.";
+      if (err.code === 'auth/wrong-password') message = "Mot de passe incorrect.";
+      
+      toast.error(err.message || message, { id: loadingToast });
     }
   };
 
@@ -80,49 +91,47 @@ toast.success(`Bienvenue, Dr. ${firstName} !`, { id: loadingToast });
             {isLogin ? 'Authentification sécurisée' : 'Inscription Praticien'}
           </p>
         </div>
+<form onSubmit={handleAuth} className="space-y-4">
+  {/* On enlève AnimatePresence ici pour éviter le blocage du rendu sur mobile */}
+  {!isLogin && (
+    <motion.div 
+      initial={{ opacity: 0, height: 0 }} 
+      animate={{ opacity: 1, height: 'auto' }} 
+      className="space-y-4 overflow-hidden"
+    >
+      {/* Champ Nom */}
+      <div className="relative">
+        <User className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
+        <input type="text" placeholder="Nom complet" className="glass-input w-full pl-12 py-4 bg-slate-900/50 border-white/5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" value={fullName} onChange={(e) => setFullName(e.target.value)} required={!isLogin} />
+      </div>
 
-        <form onSubmit={handleAuth} className="space-y-4">
-          <AnimatePresence mode='wait'>
-            {!isLogin && (
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-4"
-              >
-                {/* Champ Nom */}
-                <div className="relative">
-                  <User className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
-                  <input type="text" placeholder="Nom complet" className="glass-input w-full pl-12 py-4 bg-slate-900/50 border-white/5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-                </div>
+      {/* Champ Téléphone */}
+      <div className="relative">
+        <Phone className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
+        <input type="tel" placeholder="Numéro de téléphone" className="glass-input w-full pl-12 py-4 bg-slate-900/50 border-white/5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" value={phone} onChange={(e) => setPhone(e.target.value)} required={!isLogin} />
+      </div>
+    </motion.div>
+  )}
 
-                {/* NOUVEAU Champ Téléphone */}
-                <div className="relative">
-                  <Phone className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
-                  <input type="tel" placeholder="Numéro de téléphone" className="glass-input w-full pl-12 py-4 bg-slate-900/50 border-white/5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" value={phone} onChange={(e) => setPhone(e.target.value)} required />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+  <div className="relative">
+    <Mail className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
+    <input type="email" placeholder="Email professionnel" className="glass-input w-full pl-12 py-4 bg-slate-900/50 border-white/5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" value={email} onChange={(e) => setEmail(e.target.value)} required />
+  </div>
 
-          <div className="relative">
-            <Mail className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
-            <input type="email" placeholder="Email professionnel" className="glass-input w-full pl-12 py-4 bg-slate-900/50 border-white/5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          </div>
+  <div className="relative">
+    <Lock className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
+    <input type="password" placeholder="Mot de passe" className="glass-input w-full pl-12 py-4 bg-slate-900/50 border-white/5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" value={password} onChange={(e) => setPassword(e.target.value)} required />
+  </div>
 
-          <div className="relative">
-            <Lock className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
-            <input type="password" placeholder="Mot de passe" className="glass-input w-full pl-12 py-4 bg-slate-900/50 border-white/5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </div>
-
-          <motion.button 
-            whileHover={{ scale: 1.01 }} 
-            whileTap={{ scale: 0.98 }} 
-            className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-black text-white shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center gap-3 uppercase italic tracking-tighter"
-          >
-            {isLogin ? <><LogIn size={20}/> Connexion</> : <><UserPlus size={20}/> Créer mon compte</>}
-          </motion.button>
-        </form>
+  <motion.button 
+    whileHover={{ scale: 1.01 }} 
+    whileTap={{ scale: 0.98 }} 
+    type="submit"
+    className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-black text-white shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center gap-3 uppercase italic tracking-tighter"
+  >
+    {isLogin ? <><LogIn size={20}/> Connexion</> : <><UserPlus size={20}/> Créer mon compte</>}
+  </motion.button>
+</form>
 
         <p className="mt-8 text-center text-sm font-bold text-slate-500">
           {isLogin ? "Vous n'avez pas encore de compte ?" : "Vous possédez déjà un compte ?"}
