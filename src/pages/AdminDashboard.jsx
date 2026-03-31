@@ -6,7 +6,7 @@ import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, Clock, AlertCircle, LogOut, ShieldCheck, ChevronRight, 
-  ChevronLeft, List, Calendar as FullCalIcon, Users, Phone, ExternalLink, Mail
+  ChevronLeft, List, Calendar as FullCalIcon, Users, Phone, Mail
 } from 'lucide-react';
 import { 
   format, parseISO, addDays, subDays, startOfDay, 
@@ -24,7 +24,6 @@ const AdminDashboard = () => {
   const [viewMode, setViewMode] = useState('agenda'); 
   const navigate = useNavigate();
 
-  // Charger les disponibilités
   useEffect(() => {
     const q = query(collection(db, "availability"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -34,7 +33,6 @@ const AdminDashboard = () => {
     return () => unsubscribe();
   }, []);
 
-  // Charger le répertoire des médecins
   useEffect(() => {
     const q = query(collection(db, "users"), where("role", "==", "doctor"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -71,17 +69,17 @@ const AdminDashboard = () => {
             <div className="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-600/20">
               <ShieldCheck className="text-white" size={22} />
             </div>
-            <h1 className="text-xl font-black tracking-tight text-white italic">CID <span className="text-blue-500 font-black">ADMIN</span></h1>
+            <h1 className="text-lg md:text-xl font-black tracking-tight text-white italic">CID <span className="text-blue-500 font-black uppercase">Admin</span></h1>
           </div>
           <button onClick={handleLogout} className="p-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-500/20 shadow-lg"><LogOut size={20} /></button>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto p-4 md:p-8 pt-32 md:pt-40">
+      <main className="max-w-7xl mx-auto p-4 md:p-8 pt-28 md:pt-40">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12">
-          <div className="space-y-4">
-            <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">Supervision</h2>
-            <div className="flex p-1.5 bg-slate-900/80 rounded-2xl border border-white/5 w-fit backdrop-blur-md overflow-x-auto max-w-full no-scrollbar">
+          <div className="space-y-4 w-full lg:w-auto">
+            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter uppercase italic leading-none">Supervision</h2>
+            <div className="flex p-1.5 bg-slate-900/80 rounded-2xl border border-white/5 w-full md:w-fit backdrop-blur-md overflow-x-auto no-scrollbar">
               <ViewBtn active={viewMode === 'agenda'} onClick={() => setViewMode('agenda')} icon={<Clock size={14}/>} label="Agenda" />
               <ViewBtn active={viewMode === 'calendar'} onClick={() => setViewMode('calendar')} icon={<FullCalIcon size={14}/>} label="Calendrier" />
               <ViewBtn active={viewMode === 'list'} onClick={() => setViewMode('list')} icon={<List size={14}/>} label="Liste" />
@@ -92,15 +90,15 @@ const AdminDashboard = () => {
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
              <div className="glass p-2.5 rounded-2xl border border-white/5 flex items-center px-4 w-full sm:w-72 shadow-2xl">
                 <Search size={18} className="text-slate-500 mr-2" />
-                <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Chercher un médecin..." className="bg-transparent outline-none text-sm w-full font-medium" />
+                <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Chercher..." className="bg-transparent outline-none text-sm w-full font-medium" />
              </div>
              
              {viewMode !== 'directory' && (
-                <div className="flex items-center gap-2 bg-blue-600/10 p-2 rounded-2xl border border-blue-500/20 shadow-lg">
+                <div className="flex items-center justify-between gap-2 bg-blue-600/10 p-2 rounded-2xl border border-blue-500/20 shadow-lg w-full sm:w-auto">
                     <button onClick={() => setSelectedDate(subDays(selectedDate, 1))} className="p-2.5 hover:bg-blue-600 hover:text-white rounded-xl transition-all"><ChevronLeft size={20}/></button>
-                    <div className="flex flex-col items-center px-4 min-w-[140px]">
-                        <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{format(selectedDate, 'EEEE', {locale: fr})}</span>
-                        <span className="font-bold text-sm text-white">{format(selectedDate, 'dd MMM yyyy', {locale: fr})}</span>
+                    <div className="flex flex-col items-center px-4 min-w-[120px]">
+                        <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">{format(selectedDate, 'EEEE', {locale: fr})}</span>
+                        <span className="font-bold text-xs md:text-sm text-white">{format(selectedDate, 'dd MMM yyyy', {locale: fr})}</span>
                     </div>
                     <button onClick={() => setSelectedDate(addDays(selectedDate, 1))} className="p-2.5 hover:bg-blue-600 hover:text-white rounded-xl transition-all"><ChevronRight size={20}/></button>
                 </div>
@@ -148,25 +146,16 @@ const AdminDashboard = () => {
                         <h4 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Dr. {doc.fullName}</h4>
                         <div className="flex items-center gap-2 text-slate-500 font-bold mb-8">
                              <Phone size={14} className="text-blue-500" />
-                             <span className="tracking-widest">{doc.phone || "Non renseigné"}</span>
+                             <span className="tracking-widest">{doc.phone || "---"}</span>
                         </div>
 
                         <div className="flex w-full gap-3 relative z-10">
-                            <a 
-                                href={`tel:${doc.phone}`}
-                                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20 active:scale-95"
-                            >
-                                <Phone size={18} fill="currentColor"/> APPELER
+                            <a href={`tel:${doc.phone}`} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 text-xs">
+                                <Phone size={16} fill="currentColor"/> APPELER
                             </a>
-                            <a 
-                                href={`mailto:${doc.email}`}
-                                className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/10 transition-all active:scale-95"
-                            >
+                            <a href={`mailto:${doc.email}`} className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/10 transition-all active:scale-95">
                                 <Mail size={20}/>
                             </a>
-                        </div>
-                        <div className="absolute -bottom-6 -right-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none">
-                            <Users size={150} />
                         </div>
                     </motion.div>
                  ))
@@ -185,11 +174,17 @@ const AdminDashboard = () => {
   );
 };
 
-// --- COMPOSANT AGENDA (AVEC COLONNES AUTOMATIQUES) ---
 const AgendaView = ({ slots, selectedDate }) => {
   const hours = Array.from({ length: 24 }, (_, i) => i);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  if (slots.length === 0) return <EmptyState message="Aucun médecin radiologue disponible ce jour." />;
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  if (slots.length === 0) return <EmptyState message="Aucun médecin radiologue disponible." />;
 
   const processedSlots = slots.map((slot) => {
     const start = parseISO(slot.startTime);
@@ -205,20 +200,20 @@ const AgendaView = ({ slots, selectedDate }) => {
   });
 
   return (
-    <div className="glass rounded-[3rem] border border-white/5 overflow-hidden shadow-2xl flex flex-col h-[750px]">
-      <div className="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center backdrop-blur-xl">
-        <h3 className="font-black text-2xl text-white capitalize tracking-tighter italic">
+    <div className="glass rounded-[2rem] md:rounded-[3rem] border border-white/5 overflow-hidden shadow-2xl flex flex-col h-[600px] md:h-[750px]">
+      <div className="p-5 md:p-8 border-b border-white/5 bg-white/5 flex justify-between items-center backdrop-blur-xl">
+        <h3 className="font-black text-lg md:text-2xl text-white capitalize tracking-tighter italic">
           {format(selectedDate, 'EEEE dd MMMM', { locale: fr })}
         </h3>
-        <div className="px-4 py-2 bg-blue-500/10 rounded-full border border-blue-500/20">
-            <span className="text-xs font-black text-blue-400 uppercase tracking-widest">{slots.length} Disponibilité(s)</span>
+        <div className="px-3 py-1.5 bg-blue-500/10 rounded-full border border-blue-500/20">
+            <span className="text-[9px] md:text-xs font-black text-blue-400 uppercase tracking-widest">{slots.length} Doc(s)</span>
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto relative p-6 scrollbar-hide bg-[#020617]/50">
+      <div className="flex-1 overflow-y-auto relative p-4 md:p-6 scrollbar-hide bg-[#020617]/50">
         {hours.map(hour => (
-          <div key={hour} className="flex border-b border-white/5 h-24 relative group">
-            <span className="w-20 text-[11px] font-black text-slate-500 mt-[-10px] tracking-tighter">
+          <div key={hour} className="flex border-b border-white/5 h-24 relative">
+            <span className="w-12 md:w-20 text-[10px] md:text-[11px] font-black text-slate-500 mt-[-10px] tracking-tighter">
                 {hour.toString().padStart(2, '0')}:00
             </span>
             <div className="flex-1 border-l border-white/10" />
@@ -228,23 +223,24 @@ const AgendaView = ({ slots, selectedDate }) => {
         {processedSlots.map((slot) => {
           const top = (slot.start.getHours() * 96) + (slot.start.getMinutes() * 96 / 60) + 24;
           const height = Math.max(((slot.end - slot.start) / (1000 * 60) * 96 / 60), 60);
-          const widthPercent = `calc(${slot.colWidth}% - ${110 / (100/slot.colWidth)}px)`;
-          const leftPercent = `calc(100px + ${slot.colIndex * (slot.colWidth)}% - ${slot.colIndex * 10}px)`;
+          
+          const widthVal = isMobile ? "calc(100% - 70px)" : `calc(${slot.colWidth}% - ${110 / (100/slot.colWidth)}px)`;
+          const leftVal = isMobile ? "60px" : `calc(100px + ${slot.colIndex * (slot.colWidth)}% - ${slot.colIndex * 10}px)`;
 
           return (
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
               key={slot.id}
-              style={{ top: `${top}px`, height: `${height}px`, left: leftPercent, width: widthPercent, zIndex: 10 + slot.colIndex }}
-              className="absolute bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 border-l-4 border-white/40 rounded-2xl p-4 shadow-2xl group hover:brightness-110 transition-all cursor-pointer flex flex-col justify-center min-w-[140px]"
+              style={{ top: `${top}px`, height: `${height}px`, left: leftVal, width: widthVal, zIndex: 10 + slot.colIndex }}
+              className="absolute bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 border-l-4 border-white/40 rounded-xl md:rounded-2xl p-3 md:p-4 shadow-xl cursor-pointer flex flex-col justify-center min-w-[120px]"
             >
-              <div className="flex items-center gap-2 text-white/80 mb-1 overflow-hidden">
-                 <Clock size={12} className="shrink-0" />
-                 <span className="text-[9px] font-black tracking-widest uppercase whitespace-nowrap">
+              <div className="flex items-center gap-1.5 text-white/80 mb-1">
+                 <Clock size={10} className="shrink-0" />
+                 <span className="text-[8px] md:text-[9px] font-black tracking-widest uppercase">
                    {format(slot.start, 'HH:mm')} - {format(slot.end, 'HH:mm')}
                  </span>
               </div>
-              <h4 className="font-black text-white text-base tracking-tight uppercase italic truncate drop-shadow-lg">Dr. {slot.doctorName}</h4>
+              <h4 className="font-black text-white text-xs md:text-base tracking-tight uppercase italic truncate">Dr. {slot.doctorName}</h4>
             </motion.div>
           );
         })}
@@ -253,7 +249,6 @@ const AgendaView = ({ slots, selectedDate }) => {
   );
 };
 
-// --- COMPOSANT CALENDRIER ---
 const CalendarView = ({ allSlots, selectedDate, onDateClick }) => {
   const [currMonth, setCurrMonth] = useState(startOfMonth(selectedDate));
   useEffect(() => { setCurrMonth(startOfMonth(selectedDate)); }, [selectedDate]);
@@ -264,33 +259,39 @@ const CalendarView = ({ allSlots, selectedDate, onDateClick }) => {
   });
 
   return (
-    <div className="glass rounded-[3rem] border border-white/5 overflow-hidden shadow-2xl p-8 backdrop-blur-md">
-      <div className="flex justify-between items-center mb-10">
-        <h3 className="text-3xl font-black text-white capitalize italic tracking-tighter">{format(currMonth, 'MMMM yyyy', {locale: fr})}</h3>
-        <div className="flex gap-3 bg-slate-900/50 p-1.5 rounded-2xl border border-white/5">
-            <button onClick={() => setCurrMonth(subMonths(currMonth, 1))} className="p-2.5 hover:bg-white/10 rounded-xl transition-colors text-blue-500"><ChevronLeft size={20}/></button>
-            <button onClick={() => setCurrMonth(addMonths(currMonth, 1))} className="p-2.5 hover:bg-white/10 rounded-xl transition-colors text-blue-500"><ChevronRight size={20}/></button>
+    <div className="glass rounded-[2rem] md:rounded-[3rem] border border-white/5 overflow-hidden shadow-2xl p-4 md:p-8 backdrop-blur-md">
+      <div className="flex justify-between items-center mb-6 md:mb-10">
+        <h3 className="text-xl md:text-3xl font-black text-white capitalize italic tracking-tighter">{format(currMonth, 'MMMM yyyy', {locale: fr})}</h3>
+        <div className="flex gap-2 bg-slate-900/50 p-1 rounded-xl border border-white/5">
+            <button onClick={() => setCurrMonth(subMonths(currMonth, 1))} className="p-2 hover:bg-white/10 rounded-lg text-blue-500"><ChevronLeft size={18}/></button>
+            <button onClick={() => setCurrMonth(addMonths(currMonth, 1))} className="p-2 hover:bg-white/10 rounded-lg text-blue-500"><ChevronRight size={18}/></button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-3 text-center mb-4">
-        {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(d => (
-          <div key={d} className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{d}</div>
+      <div className="grid grid-cols-7 gap-1 md:gap-3 text-center mb-4">
+        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(d => (
+          <div key={d} className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{d}</div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-3">
+      <div className="grid grid-cols-7 gap-1 md:gap-3">
         {calendarDays.map((day, i) => {
           const daySlots = allSlots.filter(s => isSameDay(parseISO(s.startTime), day));
           const isSelected = isSameDay(day, selectedDate);
           const isCurrentMonth = isSameMonth(day, currMonth);
           return (
-            <button key={i} onClick={() => isCurrentMonth && onDateClick(day)} className={`min-h-[110px] rounded-3xl border transition-all p-3 flex flex-col items-start gap-2 relative group ${!isCurrentMonth ? 'opacity-10 grayscale cursor-default pointer-events-none' : 'hover:scale-[1.02]'} ${isSelected ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/10' : 'border-white/5 bg-white/5 hover:border-white/20'}`}>
-              <span className={`text-sm font-black ${isSelected ? 'text-blue-400' : 'text-slate-500'}`}>{format(day, 'd')}</span>
-              <div className="w-full space-y-1.5">
+            <button 
+              key={i} 
+              onClick={() => isCurrentMonth && onDateClick(day)} 
+              className={`min-h-[60px] md:min-h-[110px] rounded-xl md:rounded-3xl border transition-all p-1.5 md:p-3 flex flex-col items-center md:items-start gap-1 relative ${!isCurrentMonth ? 'opacity-5 grayscale pointer-events-none' : 'hover:scale-[1.02]'} ${isSelected ? 'border-blue-500 bg-blue-500/10 shadow-lg' : 'border-white/5 bg-white/5'}`}
+            >
+              <span className={`text-[10px] md:text-sm font-black ${isSelected ? 'text-blue-400' : 'text-slate-500'}`}>{format(day, 'd')}</span>
+              <div className="hidden md:block w-full space-y-1">
                 {daySlots.slice(0, 2).map(s => (
-                  <div key={s.id} className="text-[9px] bg-blue-600/20 text-blue-400 px-2 py-1 rounded-lg truncate font-bold uppercase border border-blue-500/10">Dr. {s.doctorName.split(' ')[1] || s.doctorName}</div>
+                  <div key={s.id} className="text-[8px] bg-blue-600/20 text-blue-400 px-1.5 py-0.5 rounded-md truncate font-bold uppercase">
+                    {s.doctorName.split(' ')[0]}
+                  </div>
                 ))}
-                {daySlots.length > 2 && <div className="w-full text-center py-1 bg-slate-900 rounded-lg text-[8px] font-black text-slate-500 uppercase">+{daySlots.length - 2}</div>}
               </div>
+              {daySlots.length > 0 && <div className="md:hidden w-1.5 h-1.5 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50" />}
             </button>
           );
         })}
@@ -300,26 +301,26 @@ const CalendarView = ({ allSlots, selectedDate, onDateClick }) => {
 };
 
 const DoctorCard = ({ slot, index, showDate }) => (
-    <motion.div layout initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} transition={{delay: index*0.05}} className="glass p-6 rounded-[2.5rem] border border-white/5 hover:border-blue-500/30 transition-all group relative shadow-2xl overflow-hidden">
+    <motion.div layout initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} transition={{delay: index*0.05}} className="glass p-6 rounded-[2.5rem] border border-white/5 hover:border-blue-500/30 transition-all group shadow-2xl">
        <div className="flex justify-between items-center mb-6">
-          <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-400 font-black text-xl border border-blue-500/10 italic">{slot.doctorName?.charAt(0)}</div>
-          {showDate && <div className="px-4 py-1 bg-slate-900 rounded-full text-[10px] font-black text-slate-400 border border-white/5 uppercase tracking-widest">{format(parseISO(slot.startTime), 'dd MMM')}</div>}
+          <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-400 font-black text-xl italic">{slot.doctorName?.charAt(0)}</div>
+          {showDate && <div className="px-4 py-1 bg-slate-900 rounded-full text-[10px] font-black text-slate-400 uppercase tracking-widest">{format(parseISO(slot.startTime), 'dd MMM')}</div>}
        </div>
-       <h4 className="text-2xl font-black text-white italic truncate uppercase tracking-tighter">Dr. {slot.doctorName}</h4>
-       <div className="mt-6 flex items-center gap-4 bg-slate-950/50 p-4 rounded-2xl border border-white/5 shadow-inner relative z-10">
-          <Clock size={18} className="text-blue-500"/> <span className="text-lg font-black text-slate-300 tracking-tight">{format(parseISO(slot.startTime), 'HH:mm')} — {format(parseISO(slot.endTime), 'HH:mm')}</span>
+       <h4 className="text-xl md:text-2xl font-black text-white italic truncate uppercase tracking-tighter">Dr. {slot.doctorName}</h4>
+       <div className="mt-6 flex items-center gap-4 bg-slate-950/50 p-4 rounded-2xl border border-white/5 shadow-inner">
+          <Clock size={18} className="text-blue-500"/> <span className="text-base md:text-lg font-black text-slate-300 tracking-tight">{format(parseISO(slot.startTime), 'HH:mm')} — {format(parseISO(slot.endTime), 'HH:mm')}</span>
        </div>
     </motion.div>
 );
 
 const ViewBtn = ({active, onClick, icon, label}) => (
-  <button onClick={onClick} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${active ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'text-slate-500 hover:text-slate-300'}`}>{icon} {label}</button>
+  <button onClick={onClick} className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${active ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'text-slate-500 hover:text-slate-300'}`}>{icon} <span className="hidden sm:inline">{label}</span></button>
 );
 
 const EmptyState = ({ message }) => (
-    <div className="col-span-full py-32 glass rounded-[3rem] border-dashed border-2 border-white/5 flex flex-col items-center justify-center text-center px-6">
-        <AlertCircle size={40} className="text-slate-700 mb-6" />
-        <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">{message}</h3>
+    <div className="col-span-full py-20 md:py-32 glass rounded-[2rem] md:rounded-[3rem] border-dashed border-2 border-white/5 flex flex-col items-center justify-center text-center px-6">
+        <AlertCircle size={32} className="text-slate-700 mb-4" />
+        <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter">{message}</h3>
     </div>
 );
 
