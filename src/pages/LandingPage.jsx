@@ -26,7 +26,7 @@ const LandingPage = () => {
               <Activity className="text-white" size={24} />
             </div>
             <h1 className="text-2xl font-black tracking-tighter text-white italic uppercase">
-              CID <span className="text-blue-500">Medical</span>
+              BI-<span className="text-blue-500">AGENDA</span>
             </h1>
           </div>
           <button 
@@ -56,9 +56,9 @@ const LandingPage = () => {
             transition={{ delay: 0.1 }}
             className="text-6xl md:text-9xl font-black text-white mb-8 tracking-tighter leading-[0.85] italic uppercase"
           >
-            FLUX DE TRAVAIL <br />
+            DISPONIBILITÉ <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-400">
-              OPTIMISÉ.
+              EN TEMPS RÉEL.
             </span>
           </motion.h1>
 
@@ -69,10 +69,10 @@ const LandingPage = () => {
             className="max-w-3xl mx-auto mb-16 space-y-6"
           >
             <p className="text-slate-300 text-xl md:text-2xl font-bold leading-snug">
-              L'application CID est une solution légère et indépendante visant à <span className="text-white underline decoration-blue-500 underline-offset-4">optimiser le flux de travail médical.</span>
+              BI-AGENDA est la solution stratégique de Belle Imagerie pour <span className="text-white underline decoration-blue-500 underline-offset-4">fluidifier le diagnostic médical.</span>
             </p>
             <p className="text-slate-500 text-lg md:text-xl font-medium">
-              Elle permet de <span className="text-slate-200">supprimer les retards d’interprétation</span> des examens en offrant une visibilité en temps réel sur la disponibilité des médecins.
+              Synchronisez la disponibilité des médecins pour <span className="text-slate-200">éliminer l'attente d’interprétation</span> et garantir une prise en charge immédiate.
             </p>
           </motion.div>
 
@@ -85,7 +85,7 @@ const LandingPage = () => {
               onClick={() => navigate('/auth')}
               className="group bg-white text-[#020617] px-12 py-6 rounded-[2.5rem] font-black text-xl shadow-2xl shadow-white/5 flex items-center gap-3 mx-auto transition-all hover:scale-105"
             >
-              Lancer CID Medical
+              Lancer BI-AGENDA
               <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </motion.div>
@@ -98,18 +98,18 @@ const LandingPage = () => {
             <div className="glass p-12 rounded-[3.5rem] border border-white/5 flex flex-col justify-between h-full">
                 <Clock className="text-blue-500 mb-8" size={48} />
                 <div>
-                    <h3 className="text-3xl font-black text-white italic uppercase mb-4">Temps Réel</h3>
+                    <h3 className="text-3xl font-black text-white italic uppercase mb-4">Zéro Attente</h3>
                     <p className="text-slate-500 text-lg font-medium leading-relaxed">
-                        Plus d'incertitude. Visualisez instantanément quel radiologue est prêt à interpréter vos examens.
+                        Visualisez instantanément quel spécialiste est actif pour interpréter vos examens sans délai.
                     </p>
                 </div>
             </div>
             <div className="glass p-12 rounded-[3.5rem] border border-white/5 flex flex-col justify-between h-full">
                 <Layers className="text-indigo-500 mb-8" size={48} />
                 <div>
-                    <h3 className="text-3xl font-black text-white italic uppercase mb-4">Indépendance</h3>
+                    <h3 className="text-3xl font-black text-white italic uppercase mb-4">Interface Agile</h3>
                     <p className="text-slate-500 text-lg font-medium leading-relaxed">
-                        Une interface légère qui s'intègre à votre routine sans alourdir vos systèmes existants.
+                        Un outil léger, conçu pour s'intégrer parfaitement au quotidien des centres d'imagerie.
                     </p>
                 </div>
             </div>
@@ -121,7 +121,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto flex flex-col items-center gap-8">
             <div className="flex items-center gap-4 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
                 <div className="h-[1px] w-12 bg-slate-500"></div>
-                <span className="text-xs font-black uppercase tracking-[0.5em] text-slate-400">DEVELOPED BY</span>
+                <span className="text-xs font-black uppercase tracking-[0.5em] text-slate-400">DESIGNED BY</span>
                 <div className="h-[1px] w-12 bg-slate-500"></div>
             </div>
             
@@ -135,7 +135,7 @@ const LandingPage = () => {
             </div>
 
             <div className="mt-12 text-slate-700 text-[9px] font-bold uppercase tracking-widest">
-                &copy; 2026 CID Medical — All Rights Reserved
+                &copy; 2026 BI-AGENDA — Propriété exclusive de Belle Imagerie
             </div>
         </div>
       </footer>
