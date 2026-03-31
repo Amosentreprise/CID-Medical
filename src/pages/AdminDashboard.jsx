@@ -4,9 +4,10 @@ import { db, auth } from '../services/firebase';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
+
 import { 
   Search, Clock, AlertCircle, LogOut, ShieldCheck, ChevronRight, 
-  ChevronLeft, List, Calendar as FullCalIcon, Users, Phone, Mail
+  ChevronLeft, List, Calendar as FullCalIcon, Users, Phone, Mail, Activity
 } from 'lucide-react';
 import { 
   format, parseISO, addDays, subDays, startOfDay, 
@@ -63,17 +64,33 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-blue-500/30">
       <Toaster position="top-right" />
       
-      <nav className="fixed top-0 w-full z-[100] glass border-b border-white/5 px-4 md:px-8 py-4 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => {setSelectedDate(startOfDay(new Date())); setViewMode('agenda')}}>
-            <div className="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-600/20">
-              <ShieldCheck className="text-white" size={22} />
-            </div>
-            <h1 className="text-lg md:text-xl font-black tracking-tight text-white italic">CID <span className="text-blue-500 font-black uppercase">Admin</span></h1>
-          </div>
-          <button onClick={handleLogout} className="p-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-500/20 shadow-lg"><LogOut size={20} /></button>
-        </div>
-      </nav>
+     <nav className="fixed top-0 w-full z-[100] glass border-b border-white/5 px-4 md:px-8 py-4 backdrop-blur-xl">
+  <div className="max-w-7xl mx-auto flex justify-between items-center">
+    <div 
+      className="flex items-center gap-3 cursor-pointer group" 
+      onClick={() => {setSelectedDate(startOfDay(new Date())); setViewMode('agenda')}}
+    >
+      <div className="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-600/20 group-hover:scale-110 transition-transform">
+        {/* On utilise Activity pour rester cohérent avec la page Auth */}
+        <Activity className="text-white" size={22} />
+      </div>
+      <h1 className="text-lg md:text-xl font-black tracking-tighter text-white italic uppercase">
+        BI-<span className="text-blue-500">AGENDA</span> 
+        <span className="ml-2 text-[10px] not-italic bg-blue-500/10 text-blue-400 px-2 py-1 rounded-lg border border-blue-500/20">
+          ADMIN
+        </span>
+      </h1>
+    </div>
+    
+    <button 
+      onClick={handleLogout} 
+      className="p-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-500/20 shadow-lg"
+      title="Déconnexion"
+    >
+      <LogOut size={20} />
+    </button>
+  </div>
+</nav>
 
       <main className="max-w-7xl mx-auto p-4 md:p-8 pt-28 md:pt-40">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12">

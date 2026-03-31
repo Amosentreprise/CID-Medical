@@ -56,7 +56,7 @@ const DoctorDashboard = () => {
         body,
         icon: "/pwa.png",
         badge: "/pwa.png",
-        tag: "cid-medical-alert", // Évite d'empiler 50 notifications
+        tag: "bi-agenda-alert", // Évite d'empiler 50 notifications
         requireInteraction: true // Garde la notif visible jusqu'à ce qu'il clique
       });
     }
@@ -198,7 +198,9 @@ const checkUpcomingSlots = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-600/20"><Activity className="text-white" size={22} /></div>
-            <h1 className="text-xl font-black tracking-tight">CID <span className="text-blue-500">Medical</span></h1>
+          <h1 className="text-xl font-black tracking-tight uppercase italic">
+  BI-<span className="text-blue-500">AGENDA</span>
+</h1>
           </div>
           <div className="flex items-center gap-4">
 <motion.button 

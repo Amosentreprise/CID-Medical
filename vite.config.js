@@ -8,16 +8,16 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate', // C'est parfait, l'app se met à jour toute seule
+      registerType: 'autoUpdate', // L'app se met à jour toute seule dès qu'un changement est détecté
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-able-icon.svg'],
       manifest: {
-        name: 'CID Medical by Belle Imagerie', // On ajoute la signature ici aussi
-        short_name: 'CID Medical',
-        description: 'Optimisation du flux médical et suppression des retards d\'interprétation',
-        theme_color: '#020617', // CHANGÉ : On utilise le noir profond de ta nouvelle Landing
-        background_color: '#020617', // CHANGÉ : Pour éviter le flash blanc au démarrage
+        name: 'BI-AGENDA by Belle Imagerie', // Nouveau nom complet
+        short_name: 'BI-AGENDA', // Nom qui s'affiche sous l'icône du téléphone
+        description: 'Gestion des disponibilités et notifications pour l\'interprétation médicale',
+        theme_color: '#020617', 
+        background_color: '#020617', 
         display: 'standalone',
-        orientation: 'portrait', // Optionnel : force l'app en mode portrait sur mobile
+        orientation: 'portrait',
         icons: [
           {
             src: 'pwa.png',
