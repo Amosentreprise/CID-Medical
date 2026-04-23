@@ -5,192 +5,278 @@ import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 
-import { 
-  Search, Clock, AlertCircle, LogOut, ShieldCheck, ChevronRight, 
+import {
+  Search, Clock, AlertCircle, LogOut, ChevronRight,
   ChevronLeft, List, Calendar as FullCalIcon, Users, Phone, Mail, Activity
 } from 'lucide-react';
-import { 
-  format, parseISO, addDays, subDays, startOfDay, 
+import {
+  format, parseISO, addDays, subDays, startOfDay,
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   isSameMonth, isSameDay, eachDayOfInterval, addMonths, subMonths
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import toast, { Toaster } from 'react-hot-toast';
 
+/* ─── CHARTE BELLE IMAGERIE ───────────────────────────────────────────────
+   Fond principal   : #0a0f2e  (bleu marine profond)
+   Accent principal : #00c8c8  (cyan turquoise)
+   Accent secondaire: #6366f1  (indigo violet)
+   Succès           : #00c864
+   Danger           : #f43f5e
+──────────────────────────────────────────────────────────────────────────── */
+
+const BI_ADMIN_STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
+  * { font-family: 'Sora', sans-serif; }
+  body, #root { background: #0a0f2e; }
+
+  .bi-glass {
+    background: rgba(255,255,255,0.025);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .bi-slot-card {
+    background: linear-gradient(135deg, #00c8c8 0%, #6366f1 100%);
+    border-left: 4px solid rgba(255,255,255,0.4);
+  }
+  .bi-view-btn-active {
+    background: #00c8c8 !important;
+    color: #0a0f2e !important;
+    box-shadow: 0 4px 20px rgba(0,200,200,0.3);
+  }
+  .bi-view-btn-inactive {
+    background: transparent;
+    color: #475569;
+  }
+  .bi-view-btn-inactive:hover { color: #94a3b8; }
+  .bi-cal-day {
+    min-height: 60px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.02);
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+  .bi-cal-day:hover { background: rgba(0,200,200,0.04); border-color: rgba(0,200,200,0.2); }
+  .bi-cal-day.selected { border-color: #00c8c8; background: rgba(0,200,200,0.08); }
+  .bi-dir-card:hover { border-color: rgba(0,200,200,0.3) !important; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+`;
+
+/* ══════════════════════════════════════════════════════════════════════════
+   COMPOSANT PRINCIPAL
+══════════════════════════════════════════════════════════════════════════ */
 const AdminDashboard = () => {
   const [allSlots, setAllSlots] = useState([]);
-  const [doctors, setDoctors] = useState([]); 
+  const [doctors, setDoctors] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
-  const [viewMode, setViewMode] = useState('agenda'); 
+  const [viewMode, setViewMode] = useState('agenda');
   const navigate = useNavigate();
 
   useEffect(() => {
-    const q = query(collection(db, "availability"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setAllSlots(data);
+    const unsub = onSnapshot(query(collection(db, "availability")), snap => {
+      setAllSlots(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
 
   useEffect(() => {
-    const q = query(collection(db, "users"), where("role", "==", "doctor"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setDoctors(data);
+    const unsub = onSnapshot(query(collection(db, "users"), where("role", "==", "doctor")), snap => {
+      setDoctors(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate('/auth');
-  };
+  const handleLogout = async () => { await signOut(auth); navigate('/auth'); };
 
-  const filteredSlots = allSlots.filter(slot => 
-    slot.doctorName?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSlots = allSlots.filter(s =>
+    s.doctorName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const filteredDoctors = doctors.filter(doc => 
-    doc.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredDoctors = doctors.filter(d =>
+    d.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const dailySlots = filteredSlots.filter(slot => 
-    format(parseISO(slot.startTime), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')
-  ).sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+  const dailySlots = filteredSlots
+    .filter(s => format(parseISO(s.startTime), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd'))
+    .sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-blue-500/30">
-      <Toaster position="top-right" />
-      
-     <nav className="fixed top-0 w-full z-[100] glass border-b border-white/5 px-4 md:px-8 py-4 backdrop-blur-xl">
-  <div className="max-w-7xl mx-auto flex justify-between items-center">
-    <div 
-      className="flex items-center gap-3 cursor-pointer group" 
-      onClick={() => {setSelectedDate(startOfDay(new Date())); setViewMode('agenda')}}
-    >
-      <div className="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-600/20 group-hover:scale-110 transition-transform">
-        {/* On utilise Activity pour rester cohérent avec la page Auth */}
-        <Activity className="text-white" size={22} />
-      </div>
-      <h1 className="text-lg md:text-xl font-black tracking-tighter text-white italic uppercase">
-        BI-<span className="text-blue-500">AGENDA</span> 
-        <span className="ml-2 text-[10px] not-italic bg-blue-500/10 text-blue-400 px-2 py-1 rounded-lg border border-blue-500/20">
-          ADMIN
-        </span>
-      </h1>
-    </div>
-    
-    <button 
-      onClick={handleLogout} 
-      className="p-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-500/20 shadow-lg"
-      title="Déconnexion"
-    >
-      <LogOut size={20} />
-    </button>
-  </div>
-</nav>
+    <div style={{ background: '#0a0f2e', minHeight: '100vh', color: '#e2e8f0' }}>
+      <style>{BI_ADMIN_STYLES}</style>
+      <Toaster position="top-right"
+        toastOptions={{ style: { background: '#0f172a', color: '#e2e8f0', border: '1px solid rgba(0,200,200,0.2)' } }} />
 
-      <main className="max-w-7xl mx-auto p-4 md:p-8 pt-28 md:pt-40">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12">
-          <div className="space-y-4 w-full lg:w-auto">
-            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter uppercase italic leading-none">Supervision</h2>
-            <div className="flex p-1.5 bg-slate-900/80 rounded-2xl border border-white/5 w-full md:w-fit backdrop-blur-md overflow-x-auto no-scrollbar">
-              <ViewBtn active={viewMode === 'agenda'} onClick={() => setViewMode('agenda')} icon={<Clock size={14}/>} label="Agenda" />
-              <ViewBtn active={viewMode === 'calendar'} onClick={() => setViewMode('calendar')} icon={<FullCalIcon size={14}/>} label="Calendrier" />
-              <ViewBtn active={viewMode === 'list'} onClick={() => setViewMode('list')} icon={<List size={14}/>} label="Liste" />
-              <ViewBtn active={viewMode === 'directory'} onClick={() => setViewMode('directory')} icon={<Users size={14}/>} label="Répertoire" />
+      {/* Lumières d'ambiance */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-8%', right: '-8%', width: '45%', height: '45%',
+          background: 'radial-gradient(circle, rgba(0,200,200,0.07) 0%, transparent 70%)', borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', bottom: '-8%', left: '-8%', width: '45%', height: '45%',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%)', borderRadius: '50%' }} />
+      </div>
+
+      {/* ─── NAVBAR ────────────────────────────────────────────────── */}
+      <nav className="bi-glass" style={{
+        position: 'fixed', top: 0, width: '100%', zIndex: 100,
+        borderBottom: '1px solid rgba(0,200,200,0.1)',
+        padding: '14px 24px'
+      }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+            onClick={() => { setSelectedDate(startOfDay(new Date())); setViewMode('agenda'); }}
+          >
+            <div style={{ background: '#00c8c8', borderRadius: '12px', padding: '8px', boxShadow: '0 4px 16px rgba(0,200,200,0.25)' }}>
+              <Activity style={{ color: '#0a0f2e' }} size={20} />
+            </div>
+            <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', fontStyle: 'italic', textTransform: 'uppercase' }}>
+              BI-<span style={{ color: '#00c8c8' }}>AGENDA</span>
+              <span style={{
+                marginLeft: '10px', fontSize: '10px', fontStyle: 'normal',
+                background: 'rgba(0,200,200,0.1)', color: '#00c8c8',
+                padding: '3px 10px', borderRadius: '8px',
+                border: '1px solid rgba(0,200,200,0.2)', fontWeight: 700, letterSpacing: '1px'
+              }}>ADMIN</span>
+            </h1>
+          </div>
+          <button onClick={handleLogout} title="Déconnexion" style={{
+            padding: '10px', borderRadius: '12px',
+            background: 'rgba(244,63,94,0.08)', color: '#f43f5e',
+            border: '1px solid rgba(244,63,94,0.2)', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <LogOut size={18} />
+          </button>
+        </div>
+      </nav>
+
+      {/* ─── CONTENU PRINCIPAL ─────────────────────────────────────── */}
+      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '110px 24px 48px' }}>
+
+        {/* En-tête supervision */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', marginBottom: '36px' }}>
+          <div>
+            <h2 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 800, color: '#fff', letterSpacing: '-1.5px', fontStyle: 'italic', textTransform: 'uppercase', lineHeight: 1 }}>
+              Supervision
+            </h2>
+            {/* Onglets de vue */}
+            <div style={{
+              display: 'flex', marginTop: '16px', gap: '4px',
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(0,200,200,0.08)',
+              borderRadius: '14px', padding: '4px'
+            }}>
+              {[
+                { id: 'agenda',    icon: <Clock size={13}/>,        label: 'Agenda' },
+                { id: 'calendar',  icon: <FullCalIcon size={13}/>,   label: 'Calendrier' },
+                { id: 'list',      icon: <List size={13}/>,          label: 'Liste' },
+                { id: 'directory', icon: <Users size={13}/>,         label: 'Répertoire' },
+              ].map(v => (
+                <button key={v.id} onClick={() => setViewMode(v.id)}
+                  className={viewMode === v.id ? 'bi-view-btn-active' : 'bi-view-btn-inactive'}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '9px 14px', borderRadius: '10px', border: 'none',
+                    fontWeight: 700, fontSize: '11px', textTransform: 'uppercase',
+                    letterSpacing: '0.8px', cursor: 'pointer', transition: 'all 0.15s',
+                    whiteSpace: 'nowrap'
+                  }}>
+                  {v.icon} {v.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-             <div className="glass p-2.5 rounded-2xl border border-white/5 flex items-center px-4 w-full sm:w-72 shadow-2xl">
-                <Search size={18} className="text-slate-500 mr-2" />
-                <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Chercher..." className="bg-transparent outline-none text-sm w-full font-medium" />
-             </div>
-             
-             {viewMode !== 'directory' && (
-                <div className="flex items-center justify-between gap-2 bg-blue-600/10 p-2 rounded-2xl border border-blue-500/20 shadow-lg w-full sm:w-auto">
-                    <button onClick={() => setSelectedDate(subDays(selectedDate, 1))} className="p-2.5 hover:bg-blue-600 hover:text-white rounded-xl transition-all"><ChevronLeft size={20}/></button>
-                    <div className="flex flex-col items-center px-4 min-w-[120px]">
-                        <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">{format(selectedDate, 'EEEE', {locale: fr})}</span>
-                        <span className="font-bold text-xs md:text-sm text-white">{format(selectedDate, 'dd MMM yyyy', {locale: fr})}</span>
-                    </div>
-                    <button onClick={() => setSelectedDate(addDays(selectedDate, 1))} className="p-2.5 hover:bg-blue-600 hover:text-white rounded-xl transition-all"><ChevronRight size={20}/></button>
+          {/* Barre de recherche + navigation date */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
+            <div className="bi-glass" style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              border: '1px solid rgba(0,200,200,0.1)',
+              borderRadius: '14px', padding: '10px 16px', minWidth: '220px'
+            }}>
+              <Search size={16} style={{ color: '#334155' }} />
+              <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Chercher un médecin..."
+                style={{ background: 'none', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '13px', fontWeight: 600, width: '100%' }} />
+            </div>
+
+            {viewMode !== 'directory' && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '4px',
+                background: 'rgba(0,200,200,0.06)',
+                border: '1px solid rgba(0,200,200,0.18)',
+                borderRadius: '14px', padding: '4px'
+              }}>
+                <button onClick={() => setSelectedDate(subDays(selectedDate, 1))} style={{
+                  padding: '8px 10px', background: 'none', border: 'none',
+                  color: '#00c8c8', cursor: 'pointer', borderRadius: '8px',
+                  display: 'flex', alignItems: 'center'
+                }}><ChevronLeft size={18}/></button>
+                <div style={{ textAlign: 'center', padding: '0 12px', minWidth: '130px' }}>
+                  <div style={{ fontSize: '9px', fontWeight: 700, color: '#00c8c8', textTransform: 'uppercase', letterSpacing: '2px' }}>
+                    {format(selectedDate, 'EEEE', { locale: fr })}
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>
+                    {format(selectedDate, 'dd MMM yyyy', { locale: fr })}
+                  </div>
                 </div>
-             )}
+                <button onClick={() => setSelectedDate(addDays(selectedDate, 1))} style={{
+                  padding: '8px 10px', background: 'none', border: 'none',
+                  color: '#00c8c8', cursor: 'pointer', borderRadius: '8px',
+                  display: 'flex', alignItems: 'center'
+                }}><ChevronRight size={18}/></button>
+              </div>
+            )}
           </div>
         </div>
 
+        {/* ─── VUES ────────────────────────────────────────────────── */}
         <AnimatePresence mode="wait">
           {viewMode === 'agenda' && (
-            <motion.div key="agenda" initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-20}}>
+            <motion.div key="agenda" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
               <AgendaView slots={dailySlots} selectedDate={selectedDate} />
             </motion.div>
           )}
 
           {viewMode === 'calendar' && (
-            <motion.div key="calendar" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
-              <CalendarView allSlots={filteredSlots} selectedDate={selectedDate} onDateClick={(d) => {setSelectedDate(d); setViewMode('agenda')}} />
+            <motion.div key="calendar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <CalendarView allSlots={filteredSlots} selectedDate={selectedDate}
+                onDateClick={d => { setSelectedDate(d); setViewMode('agenda'); }} />
             </motion.div>
           )}
 
           {viewMode === 'list' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-               {filteredSlots.length > 0 ? (
-                 filteredSlots.map((s, i) => <DoctorCard key={s.id} slot={s} index={i} showDate={true} />)
-               ) : (
-                 <EmptyState message="Aucune disponibilité." />
-               )}
-            </div>
+            <motion.div key="list" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+              {filteredSlots.length > 0
+                ? filteredSlots.map((s, i) => <DoctorCard key={s.id} slot={s} index={i} showDate />)
+                : <EmptyState message="Aucune disponibilité." />}
+            </motion.div>
           )}
 
           {viewMode === 'directory' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-               {filteredDoctors.length > 0 ? (
-                 filteredDoctors.map((doc, i) => (
-                    <motion.div 
-                      key={doc.id} 
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="glass p-8 rounded-[3.5rem] border border-white/5 flex flex-col items-center text-center group relative overflow-hidden shadow-2xl"
-                    >
-                        <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center text-white text-3xl font-black mb-6 shadow-xl shadow-blue-600/20 group-hover:scale-110 transition-transform italic uppercase">
-                            {doc.fullName?.charAt(0)}
-                        </div>
-                        <h4 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Dr. {doc.fullName}</h4>
-                        <div className="flex items-center gap-2 text-slate-500 font-bold mb-8">
-                             <Phone size={14} className="text-blue-500" />
-                             <span className="tracking-widest">{doc.phone || "---"}</span>
-                        </div>
-
-                        <div className="flex w-full gap-3 relative z-10">
-                            <a href={`tel:${doc.phone}`} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 text-xs">
-                                <Phone size={16} fill="currentColor"/> APPELER
-                            </a>
-                            <a href={`mailto:${doc.email}`} className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/10 transition-all active:scale-95">
-                                <Mail size={20}/>
-                            </a>
-                        </div>
-                    </motion.div>
-                 ))
-               ) : (
-                 <EmptyState message="Répertoire vide." />
-               )}
-            </div>
+            <motion.div key="directory" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+              {filteredDoctors.length > 0
+                ? filteredDoctors.map((doc, i) => <DirectoryCard key={doc.id} doctor={doc} index={i} />)
+                : <EmptyState message="Répertoire vide." />}
+            </motion.div>
           )}
         </AnimatePresence>
       </main>
 
-      <footer className="py-12 text-center opacity-30">
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 italic">by Belle Imagerie</p>
+      <footer style={{ padding: '40px 0', textAlign: 'center', opacity: 0.25 }}>
+        <p style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', letterSpacing: '4px', textTransform: 'uppercase', fontStyle: 'italic' }}>
+          by Belle Imagerie
+        </p>
       </footer>
     </div>
   );
 };
 
+/* ══════════════════════════════════════════════════════════════════════════
+   VUE AGENDA (timeline horaire)
+══════════════════════════════════════════════════════════════════════════ */
 const AgendaView = ({ slots, selectedDate }) => {
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -203,61 +289,83 @@ const AgendaView = ({ slots, selectedDate }) => {
 
   if (slots.length === 0) return <EmptyState message="Aucun médecin radiologue disponible." />;
 
-  const processedSlots = slots.map((slot) => {
+  const processedSlots = slots.map(slot => {
     const start = parseISO(slot.startTime);
     const end = parseISO(slot.endTime);
-    const overlapping = slots.filter(other => {
-      if (slot.id === other.id) return false;
-      return (start < parseISO(other.endTime) && end > parseISO(other.startTime));
-    });
-    const totalInGroup = overlapping.length + 1;
-    const colWidth = (100 / totalInGroup);
-    const colIndex = overlapping.filter(other => other.id < slot.id).length;
-    return { ...slot, start, end, colWidth, colIndex };
+    const overlapping = slots.filter(other =>
+      slot.id !== other.id && start < parseISO(other.endTime) && end > parseISO(other.startTime)
+    );
+    const total = overlapping.length + 1;
+    const colIdx = overlapping.filter(other => other.id < slot.id).length;
+    return { ...slot, start, end, colWidth: 100 / total, colIndex: colIdx };
   });
 
   return (
-    <div className="glass rounded-[2rem] md:rounded-[3rem] border border-white/5 overflow-hidden shadow-2xl flex flex-col h-[600px] md:h-[750px]">
-      <div className="p-5 md:p-8 border-b border-white/5 bg-white/5 flex justify-between items-center backdrop-blur-xl">
-        <h3 className="font-black text-lg md:text-2xl text-white capitalize tracking-tighter italic">
+    <div className="bi-glass" style={{
+      borderRadius: '24px', border: '1px solid rgba(0,200,200,0.1)',
+      overflow: 'hidden', display: 'flex', flexDirection: 'column',
+      height: '680px', boxShadow: '0 24px 64px rgba(0,0,0,0.3)'
+    }}>
+      {/* En-tête */}
+      <div style={{
+        padding: '20px 28px', borderBottom: '1px solid rgba(0,200,200,0.08)',
+        background: 'rgba(0,200,200,0.03)',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+      }}>
+        <h3 style={{ fontWeight: 800, fontSize: '20px', color: '#fff', fontStyle: 'italic', textTransform: 'capitalize', letterSpacing: '-0.5px' }}>
           {format(selectedDate, 'EEEE dd MMMM', { locale: fr })}
         </h3>
-        <div className="px-3 py-1.5 bg-blue-500/10 rounded-full border border-blue-500/20">
-            <span className="text-[9px] md:text-xs font-black text-blue-400 uppercase tracking-widest">{slots.length} Doc(s)</span>
+        <div style={{
+          padding: '5px 14px', background: 'rgba(0,200,200,0.08)',
+          border: '1px solid rgba(0,200,200,0.2)', borderRadius: '20px'
+        }}>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: '#00c8c8', textTransform: 'uppercase', letterSpacing: '2px' }}>
+            {slots.length} Doc{slots.length > 1 ? 's' : ''}
+          </span>
         </div>
       </div>
-      
-      <div className="flex-1 overflow-y-auto relative p-4 md:p-6 scrollbar-hide bg-[#020617]/50">
+
+      {/* Timeline */}
+      <div className="scrollbar-hide" style={{ flex: 1, overflowY: 'auto', position: 'relative', padding: '16px 20px', background: 'rgba(10,15,46,0.6)' }}>
         {hours.map(hour => (
-          <div key={hour} className="flex border-b border-white/5 h-24 relative">
-            <span className="w-12 md:w-20 text-[10px] md:text-[11px] font-black text-slate-500 mt-[-10px] tracking-tighter">
-                {hour.toString().padStart(2, '0')}:00
+          <div key={hour} style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.04)', height: '96px', position: 'relative' }}>
+            <span style={{ width: isMobile ? '44px' : '72px', fontSize: '10px', fontWeight: 700, color: '#1e293b', marginTop: '-10px', letterSpacing: '-0.5px', flexShrink: 0 }}>
+              {hour.toString().padStart(2, '0')}:00
             </span>
-            <div className="flex-1 border-l border-white/10" />
+            <div style={{ flex: 1, borderLeft: '1px solid rgba(255,255,255,0.06)' }} />
           </div>
         ))}
 
-        {processedSlots.map((slot) => {
+        {processedSlots.map(slot => {
           const top = (slot.start.getHours() * 96) + (slot.start.getMinutes() * 96 / 60) + 24;
           const height = Math.max(((slot.end - slot.start) / (1000 * 60) * 96 / 60), 60);
-          
-          const widthVal = isMobile ? "calc(100% - 70px)" : `calc(${slot.colWidth}% - ${110 / (100/slot.colWidth)}px)`;
-          const leftVal = isMobile ? "60px" : `calc(100px + ${slot.colIndex * (slot.colWidth)}% - ${slot.colIndex * 10}px)`;
+          const leftBase = isMobile ? 44 : 72;
+          const availWidth = `calc(100% - ${leftBase + 8}px)`;
+          const width = isMobile ? availWidth : `calc(${slot.colWidth}% - ${leftBase / (100 / slot.colWidth)}px)`;
+          const left = isMobile ? `${leftBase + 4}px` : `calc(${leftBase}px + ${slot.colIndex * slot.colWidth}%)`;
 
           return (
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-              key={slot.id}
-              style={{ top: `${top}px`, height: `${height}px`, left: leftVal, width: widthVal, zIndex: 10 + slot.colIndex }}
-              className="absolute bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 border-l-4 border-white/40 rounded-xl md:rounded-2xl p-3 md:p-4 shadow-xl cursor-pointer flex flex-col justify-center min-w-[120px]"
-            >
-              <div className="flex items-center gap-1.5 text-white/80 mb-1">
-                 <Clock size={10} className="shrink-0" />
-                 <span className="text-[8px] md:text-[9px] font-black tracking-widest uppercase">
-                   {format(slot.start, 'HH:mm')} - {format(slot.end, 'HH:mm')}
-                 </span>
+            <motion.div key={slot.id}
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bi-slot-card"
+              style={{
+                position: 'absolute', top: `${top}px`, height: `${height}px`,
+                left, width, zIndex: 10 + slot.colIndex,
+                borderRadius: '12px', padding: '10px 14px',
+                boxShadow: '0 8px 24px rgba(0,200,200,0.15)',
+                display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                cursor: 'pointer', minWidth: '100px'
+              }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
+                <Clock size={9} style={{ color: 'rgba(255,255,255,0.7)', flexShrink: 0 }} />
+                <span style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(255,255,255,0.75)', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                  {format(slot.start, 'HH:mm')} - {format(slot.end, 'HH:mm')}
+                </span>
               </div>
-              <h4 className="font-black text-white text-xs md:text-base tracking-tight uppercase italic truncate">Dr. {slot.doctorName}</h4>
+              <h4 style={{ fontWeight: 800, color: '#fff', fontSize: isMobile ? '11px' : '14px', textTransform: 'uppercase', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.3px' }}>
+                Dr. {slot.doctorName}
+              </h4>
             </motion.div>
           );
         })}
@@ -266,49 +374,82 @@ const AgendaView = ({ slots, selectedDate }) => {
   );
 };
 
+/* ══════════════════════════════════════════════════════════════════════════
+   VUE CALENDRIER MENSUEL
+══════════════════════════════════════════════════════════════════════════ */
 const CalendarView = ({ allSlots, selectedDate, onDateClick }) => {
   const [currMonth, setCurrMonth] = useState(startOfMonth(selectedDate));
   useEffect(() => { setCurrMonth(startOfMonth(selectedDate)); }, [selectedDate]);
 
-  const calendarDays = eachDayOfInterval({
-    start: startOfWeek(startOfMonth(currMonth), {locale: fr, weekStartsOn: 1}),
-    end: endOfWeek(endOfMonth(currMonth), {locale: fr, weekStartsOn: 1})
+  const calDays = eachDayOfInterval({
+    start: startOfWeek(startOfMonth(currMonth), { locale: fr, weekStartsOn: 1 }),
+    end: endOfWeek(endOfMonth(currMonth), { locale: fr, weekStartsOn: 1 })
   });
 
   return (
-    <div className="glass rounded-[2rem] md:rounded-[3rem] border border-white/5 overflow-hidden shadow-2xl p-4 md:p-8 backdrop-blur-md">
-      <div className="flex justify-between items-center mb-6 md:mb-10">
-        <h3 className="text-xl md:text-3xl font-black text-white capitalize italic tracking-tighter">{format(currMonth, 'MMMM yyyy', {locale: fr})}</h3>
-        <div className="flex gap-2 bg-slate-900/50 p-1 rounded-xl border border-white/5">
-            <button onClick={() => setCurrMonth(subMonths(currMonth, 1))} className="p-2 hover:bg-white/10 rounded-lg text-blue-500"><ChevronLeft size={18}/></button>
-            <button onClick={() => setCurrMonth(addMonths(currMonth, 1))} className="p-2 hover:bg-white/10 rounded-lg text-blue-500"><ChevronRight size={18}/></button>
+    <div className="bi-glass" style={{
+      borderRadius: '24px', border: '1px solid rgba(0,200,200,0.1)',
+      overflow: 'hidden', padding: '28px',
+      boxShadow: '0 24px 64px rgba(0,0,0,0.3)'
+    }}>
+      {/* Navigation mois */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h3 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', fontStyle: 'italic', textTransform: 'capitalize', letterSpacing: '-1px' }}>
+          {format(currMonth, 'MMMM yyyy', { locale: fr })}
+        </h3>
+        <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(0,200,200,0.1)', borderRadius: '12px', padding: '4px' }}>
+          <button onClick={() => setCurrMonth(subMonths(currMonth, 1))}
+            style={{ padding: '8px 10px', background: 'none', border: 'none', color: '#00c8c8', cursor: 'pointer', borderRadius: '8px', display: 'flex' }}>
+            <ChevronLeft size={16}/>
+          </button>
+          <button onClick={() => setCurrMonth(addMonths(currMonth, 1))}
+            style={{ padding: '8px 10px', background: 'none', border: 'none', color: '#00c8c8', cursor: 'pointer', borderRadius: '8px', display: 'flex' }}>
+            <ChevronRight size={16}/>
+          </button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-1 md:gap-3 text-center mb-4">
-        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(d => (
-          <div key={d} className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{d}</div>
+
+      {/* Jours de la semaine */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', textAlign: 'center', marginBottom: '8px' }}>
+        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((d, i) => (
+          <div key={i} style={{ fontSize: '10px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '1.5px' }}>{d}</div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-1 md:gap-3">
-        {calendarDays.map((day, i) => {
+
+      {/* Grille jours */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
+        {calDays.map((day, i) => {
           const daySlots = allSlots.filter(s => isSameDay(parseISO(s.startTime), day));
           const isSelected = isSameDay(day, selectedDate);
           const isCurrentMonth = isSameMonth(day, currMonth);
+
           return (
-            <button 
-              key={i} 
-              onClick={() => isCurrentMonth && onDateClick(day)} 
-              className={`min-h-[60px] md:min-h-[110px] rounded-xl md:rounded-3xl border transition-all p-1.5 md:p-3 flex flex-col items-center md:items-start gap-1 relative ${!isCurrentMonth ? 'opacity-5 grayscale pointer-events-none' : 'hover:scale-[1.02]'} ${isSelected ? 'border-blue-500 bg-blue-500/10 shadow-lg' : 'border-white/5 bg-white/5'}`}
-            >
-              <span className={`text-[10px] md:text-sm font-black ${isSelected ? 'text-blue-400' : 'text-slate-500'}`}>{format(day, 'd')}</span>
-              <div className="hidden md:block w-full space-y-1">
-                {daySlots.slice(0, 2).map(s => (
-                  <div key={s.id} className="text-[8px] bg-blue-600/20 text-blue-400 px-1.5 py-0.5 rounded-md truncate font-bold uppercase">
-                    {s.doctorName.split(' ')[0]}
-                  </div>
-                ))}
-              </div>
-              {daySlots.length > 0 && <div className="md:hidden w-1.5 h-1.5 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50" />}
+            <button key={i}
+              onClick={() => isCurrentMonth && onDateClick(day)}
+              className={`bi-cal-day ${isSelected ? 'selected' : ''}`}
+              style={{
+                opacity: isCurrentMonth ? 1 : 0.08,
+                pointerEvents: isCurrentMonth ? 'auto' : 'none',
+                padding: '8px 6px',
+                display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                gap: '4px', border: 'none', cursor: 'pointer'
+              }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? '#00c8c8' : '#475569' }}>
+                {format(day, 'd')}
+              </span>
+              {daySlots.slice(0, 2).map(s => (
+                <div key={s.id} style={{
+                  fontSize: '9px', background: 'rgba(0,200,200,0.12)',
+                  color: '#00c8c8', padding: '2px 6px', borderRadius: '4px',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  fontWeight: 700, textTransform: 'uppercase', width: '100%'
+                }}>
+                  {s.doctorName?.split(' ')[0]}
+                </div>
+              ))}
+              {daySlots.length > 2 && (
+                <span style={{ fontSize: '9px', color: '#475569', fontWeight: 600 }}>+{daySlots.length - 2}</span>
+              )}
             </button>
           );
         })}
@@ -317,28 +458,132 @@ const CalendarView = ({ allSlots, selectedDate, onDateClick }) => {
   );
 };
 
+/* ══════════════════════════════════════════════════════════════════════════
+   CARTE CRÉNEAU (vue Liste)
+══════════════════════════════════════════════════════════════════════════ */
 const DoctorCard = ({ slot, index, showDate }) => (
-    <motion.div layout initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} transition={{delay: index*0.05}} className="glass p-6 rounded-[2.5rem] border border-white/5 hover:border-blue-500/30 transition-all group shadow-2xl">
-       <div className="flex justify-between items-center mb-6">
-          <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-400 font-black text-xl italic">{slot.doctorName?.charAt(0)}</div>
-          {showDate && <div className="px-4 py-1 bg-slate-900 rounded-full text-[10px] font-black text-slate-400 uppercase tracking-widest">{format(parseISO(slot.startTime), 'dd MMM')}</div>}
-       </div>
-       <h4 className="text-xl md:text-2xl font-black text-white italic truncate uppercase tracking-tighter">Dr. {slot.doctorName}</h4>
-       <div className="mt-6 flex items-center gap-4 bg-slate-950/50 p-4 rounded-2xl border border-white/5 shadow-inner">
-          <Clock size={18} className="text-blue-500"/> <span className="text-base md:text-lg font-black text-slate-300 tracking-tight">{format(parseISO(slot.startTime), 'HH:mm')} — {format(parseISO(slot.endTime), 'HH:mm')}</span>
-       </div>
-    </motion.div>
-);
-
-const ViewBtn = ({active, onClick, icon, label}) => (
-  <button onClick={onClick} className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${active ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'text-slate-500 hover:text-slate-300'}`}>{icon} <span className="hidden sm:inline">{label}</span></button>
-);
-
-const EmptyState = ({ message }) => (
-    <div className="col-span-full py-20 md:py-32 glass rounded-[2rem] md:rounded-[3rem] border-dashed border-2 border-white/5 flex flex-col items-center justify-center text-center px-6">
-        <AlertCircle size={32} className="text-slate-700 mb-4" />
-        <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter">{message}</h3>
+  <motion.div layout
+    initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+    transition={{ delay: index * 0.04 }}
+    style={{
+      background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(0,200,200,0.1)',
+      borderRadius: '20px', padding: '22px', transition: 'border-color 0.2s'
+    }}
+    onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,200,200,0.3)'}
+    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(0,200,200,0.1)'}
+  >
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+      <div style={{
+        width: '44px', height: '44px', background: 'rgba(0,200,200,0.1)',
+        borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#00c8c8', fontWeight: 800, fontSize: '18px', fontStyle: 'italic'
+      }}>
+        {slot.doctorName?.charAt(0)}
+      </div>
+      {showDate && (
+        <span style={{
+          background: 'rgba(255,255,255,0.04)', color: '#475569',
+          padding: '4px 12px', borderRadius: '20px',
+          fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px'
+        }}>
+          {format(parseISO(slot.startTime), 'dd MMM')}
+        </span>
+      )}
     </div>
+    <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      Dr. {slot.doctorName}
+    </h4>
+    <div style={{
+      marginTop: '14px', display: 'flex', alignItems: 'center', gap: '10px',
+      background: 'rgba(0,200,200,0.05)', border: '1px solid rgba(0,200,200,0.1)',
+      borderRadius: '12px', padding: '12px 16px'
+    }}>
+      <Clock size={16} style={{ color: '#00c8c8' }} />
+      <span style={{ fontSize: '15px', fontWeight: 700, color: '#94a3b8' }}>
+        {format(parseISO(slot.startTime), 'HH:mm')} — {format(parseISO(slot.endTime), 'HH:mm')}
+      </span>
+    </div>
+  </motion.div>
+);
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CARTE ANNUAIRE (vue Répertoire)
+══════════════════════════════════════════════════════════════════════════ */
+const DirectoryCard = ({ doctor, index }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+    transition={{ delay: index * 0.05 }}
+    className="bi-dir-card"
+    style={{
+      background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(0,200,200,0.1)',
+      borderRadius: '24px', padding: '32px',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      textAlign: 'center', transition: 'border-color 0.2s'
+    }}
+  >
+    {/* Avatar initiale */}
+    <div style={{
+      width: '72px', height: '72px',
+      background: 'linear-gradient(135deg, #00c8c8 0%, #6366f1 100%)',
+      borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: '#0a0f2e', fontSize: '28px', fontWeight: 800, fontStyle: 'italic',
+      marginBottom: '20px', boxShadow: '0 8px 28px rgba(0,200,200,0.25)'
+    }}>
+      {doctor.fullName?.charAt(0)}
+    </div>
+
+    <h4 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.5px', marginBottom: '8px' }}>
+      Dr. {doctor.fullName}
+    </h4>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', marginBottom: '24px' }}>
+      <Phone size={13} style={{ color: '#00c8c8' }} />
+      <span style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '1px' }}>
+        {doctor.phone || '---'}
+      </span>
+    </div>
+
+    {/* Actions */}
+    <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+      <a href={`tel:${doctor.phone}`}
+        style={{
+          flex: 1, background: '#00c8c8', color: '#0a0f2e',
+          padding: '12px', borderRadius: '12px', fontWeight: 700,
+          fontSize: '12px', textDecoration: 'none', textTransform: 'uppercase',
+          letterSpacing: '0.5px', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', gap: '6px',
+          transition: 'all 0.2s', boxShadow: '0 4px 16px rgba(0,200,200,0.2)'
+        }}>
+        <Phone size={14} fill="#0a0f2e" /> Appeler
+      </a>
+      <a href={`mailto:${doctor.email}`}
+        style={{
+          padding: '12px 16px', background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(0,200,200,0.15)', borderRadius: '12px',
+          color: '#94a3b8', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', textDecoration: 'none', transition: 'all 0.2s'
+        }}>
+        <Mail size={18} />
+      </a>
+    </div>
+  </motion.div>
+);
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ÉTAT VIDE
+══════════════════════════════════════════════════════════════════════════ */
+const EmptyState = ({ message }) => (
+  <div style={{
+    gridColumn: '1 / -1', padding: '80px 24px',
+    background: 'rgba(255,255,255,0.02)',
+    border: '2px dashed rgba(0,200,200,0.08)',
+    borderRadius: '24px', display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center', textAlign: 'center'
+  }}>
+    <AlertCircle size={30} style={{ color: '#1e293b', marginBottom: '14px' }} />
+    <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.5px' }}>
+      {message}
+    </h3>
+  </div>
 );
 
 export default AdminDashboard;

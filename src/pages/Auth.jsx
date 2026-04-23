@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { auth, db } from '../services/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
 import { LogIn, UserPlus, Mail, Lock, User, Activity, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
+
+/* ─── CHARTE BELLE IMAGERIE ───────────────────────────────────────────────
+   Fond principal  : #0a0f2e (bleu marine profond)
+   Accent principal: #00c8c8 (cyan turquoise)
+   Accent secondaire: #6366f1 (indigo violet)
+   Texte principal : #ffffff
+   Texte secondaire: #94a3b8
+   Texte tertiaire : #475569
+──────────────────────────────────────────────────────────────────────────── */
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -18,12 +27,10 @@ const Auth = () => {
   const handleAuth = async (e) => {
     e.preventDefault();
     const loadingToast = toast.loading(isLogin ? 'Connexion BI-AGENDA...' : 'Création du compte...');
-    
     try {
       if (isLogin) {
         const res = await signInWithEmailAndPassword(auth, email, password);
         const userSnap = await getDoc(doc(db, "users", res.user.uid));
-        
         if (userSnap.exists()) {
           const userData = userSnap.data();
           const firstName = userData.fullName ? userData.fullName.split(' ')[0] : 'Docteur';
@@ -32,23 +39,14 @@ const Auth = () => {
         }
       } else {
         if (phone.length < 8) throw new Error("Le numéro de téléphone semble invalide.");
-
         const res = await createUserWithEmailAndPassword(auth, email, password);
         const userData = {
-          uid: res.user.uid,
-          fullName,
-          email,
-          phone,
-          role: 'doctor',
+          uid: res.user.uid, fullName, email, phone, role: 'doctor',
           createdAt: new Date().toISOString()
         };
-
         await setDoc(doc(db, "users", res.user.uid), userData);
         toast.success('Compte BI-AGENDA créé !', { id: loadingToast });
-        
-        setTimeout(() => {
-          navigate('/doctor');
-        }, 600);
+        setTimeout(() => navigate('/doctor'), 600);
       }
     } catch (err) {
       console.error(err);
@@ -57,80 +55,222 @@ const Auth = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 bg-[#020617]">
-      <Toaster position="top-right" />
+    <div style={{ background: '#0a0f2e', fontFamily: "'Sora', sans-serif" }}
+      className="relative min-h-screen flex items-center justify-center overflow-hidden px-4">
 
-      {/* Background animés */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-600/20 rounded-full blur-[80px]" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-600/10 rounded-full blur-[100px]" />
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
+        * { font-family: 'Sora', sans-serif; }
 
-      <motion.div 
-        key={isLogin ? "login" : "signup"} 
-        initial={{ opacity: 0, y: 20 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        className="glass w-full max-w-md p-10 relative z-10 border border-white/10 rounded-[2.5rem]"
+        .bi-input {
+          width: 100%;
+          padding: 14px 14px 14px 46px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(0,200,200,0.15);
+          border-radius: 14px;
+          color: #e2e8f0;
+          font-size: 14px;
+          outline: none;
+          transition: border-color 0.2s, background 0.2s;
+        }
+        .bi-input:focus {
+          border-color: rgba(0,200,200,0.5);
+          background: rgba(0,200,200,0.04);
+        }
+        .bi-input::placeholder { color: #334155; }
+        .bi-submit {
+          width: 100%;
+          background: #00c8c8;
+          color: #0a0f2e;
+          padding: 15px;
+          border-radius: 14px;
+          border: none;
+          font-weight: 800;
+          font-size: 14px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+          transition: all 0.2s;
+        }
+        .bi-submit:hover {
+          background: #00e0e0;
+          box-shadow: 0 8px 28px rgba(0,200,200,0.3);
+          transform: translateY(-1px);
+        }
+        .bi-submit:active { transform: scale(0.98); }
+        .bi-tab-active {
+          background: #00c8c8 !important;
+          color: #0a0f2e !important;
+        }
+        .bi-tab-inactive {
+          background: transparent !important;
+          color: #475569 !important;
+        }
+      `}</style>
+
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: { background: '#0f172a', color: '#e2e8f0', border: '1px solid rgba(0,200,200,0.2)' }
+        }}
+      />
+
+      {/* Ambiance lumineuse */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+        overflow: 'hidden', pointerEvents: 'none'
+      }}>
+        <div style={{
+          position: 'absolute', top: '-10%', left: '-10%',
+          width: '50%', height: '50%',
+          background: 'radial-gradient(circle, rgba(0,200,200,0.1) 0%, transparent 70%)',
+          borderRadius: '50%'
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '-10%', right: '-10%',
+          width: '55%', height: '55%',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%)',
+          borderRadius: '50%'
+        }} />
+      </div>
+
+      {/* Carte principale */}
+      <motion.div
+        key={isLogin ? "login" : "signup"}
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        style={{
+          background: 'rgba(255,255,255,0.025)',
+          border: '1px solid rgba(0,200,200,0.15)',
+          borderRadius: '28px',
+          padding: '40px',
+          width: '100%',
+          maxWidth: '420px',
+          position: 'relative',
+          zIndex: 10,
+          backdropFilter: 'blur(24px)'
+        }}
       >
-        <div className="flex flex-col items-center mb-10">
-          <div className="w-16 h-16 bg-blue-600 p-4 rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-blue-600/20">
-            <Activity className="text-white w-8 h-8" />
+        {/* Logo & en-tête */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '32px' }}>
+          <div style={{
+            width: '60px', height: '60px',
+            background: '#00c8c8',
+            borderRadius: '16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: '16px',
+            boxShadow: '0 8px 32px rgba(0,200,200,0.25)'
+          }}>
+            <Activity style={{ color: '#0a0f2e' }} size={28} />
           </div>
-          <h1 className="text-3xl font-black tracking-tighter text-white italic uppercase">
-            BI-<span className="text-blue-500">AGENDA</span>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-1px', fontStyle: 'italic', textTransform: 'uppercase' }}>
+            BI-<span style={{ color: '#00c8c8' }}>AGENDA</span>
           </h1>
-          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-2">
+          <p style={{ fontSize: '10px', color: '#475569', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginTop: '6px' }}>
             {isLogin ? 'Authentification sécurisée' : 'Inscription Praticien'}
           </p>
         </div>
 
-        <form onSubmit={handleAuth} className="space-y-4">
-          {!isLogin && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }} 
-              animate={{ opacity: 1, height: 'auto' }} 
-              className="space-y-4 overflow-hidden"
-            >
-              <div className="relative">
-                <User className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
-                <input type="text" placeholder="Nom complet" className="glass-input w-full pl-12 py-4 bg-slate-900/50 border-white/5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" value={fullName} onChange={(e) => setFullName(e.target.value)} required={!isLogin} />
-              </div>
+        {/* Sélecteur Connexion / Inscription */}
+        <div style={{
+          display: 'flex', gap: '4px',
+          background: 'rgba(255,255,255,0.04)',
+          borderRadius: '12px', padding: '4px',
+          marginBottom: '24px'
+        }}>
+          <button
+            type="button"
+            onClick={() => setIsLogin(true)}
+            className={isLogin ? 'bi-tab-active' : 'bi-tab-inactive'}
+            style={{
+              flex: 1, padding: '10px', borderRadius: '8px',
+              border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            Connexion
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsLogin(false)}
+            className={!isLogin ? 'bi-tab-active' : 'bi-tab-inactive'}
+            style={{
+              flex: 1, padding: '10px', borderRadius: '8px',
+              border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            Inscription
+          </button>
+        </div>
 
-              <div className="relative">
-                <Phone className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
-                <input type="tel" placeholder="Numéro de téléphone" className="glass-input w-full pl-12 py-4 bg-slate-900/50 border-white/5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" value={phone} onChange={(e) => setPhone(e.target.value)} required={!isLogin} />
+        <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+          {/* Champs inscription uniquement */}
+          {!isLogin && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflow: 'hidden' }}
+            >
+              <div style={{ position: 'relative' }}>
+                <User style={{ position: 'absolute', left: '14px', top: '15px', color: '#334155' }} size={16} />
+                <input type="text" placeholder="Nom complet" className="bi-input"
+                  value={fullName} onChange={e => setFullName(e.target.value)} required={!isLogin} />
+              </div>
+              <div style={{ position: 'relative' }}>
+                <Phone style={{ position: 'absolute', left: '14px', top: '15px', color: '#334155' }} size={16} />
+                <input type="tel" placeholder="Numéro de téléphone" className="bi-input"
+                  value={phone} onChange={e => setPhone(e.target.value)} required={!isLogin} />
               </div>
             </motion.div>
           )}
 
-          <div className="relative">
-            <Mail className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
-            <input type="email" placeholder="Email professionnel" className="glass-input w-full pl-12 py-4 bg-slate-900/50 border-white/5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          {/* Email */}
+          <div style={{ position: 'relative' }}>
+            <Mail style={{ position: 'absolute', left: '14px', top: '15px', color: '#334155' }} size={16} />
+            <input type="email" placeholder="Email professionnel" className="bi-input"
+              value={email} onChange={e => setEmail(e.target.value)} required />
           </div>
 
-          <div className="relative">
-            <Lock className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
-            <input type="password" placeholder="Mot de passe" className="glass-input w-full pl-12 py-4 bg-slate-900/50 border-white/5 rounded-2xl text-white outline-none focus:border-blue-500 transition-all" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          {/* Mot de passe */}
+          <div style={{ position: 'relative' }}>
+            <Lock style={{ position: 'absolute', left: '14px', top: '15px', color: '#334155' }} size={16} />
+            <input type="password" placeholder="Mot de passe" className="bi-input"
+              value={password} onChange={e => setPassword(e.target.value)} required />
           </div>
 
-          <motion.button 
-            whileHover={{ scale: 1.01 }} 
-            whileTap={{ scale: 0.98 }} 
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-black text-white shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center gap-3 uppercase italic tracking-tighter"
-          >
-            {isLogin ? <><LogIn size={20}/> Connexion</> : <><UserPlus size={20}/> Créer mon compte</>}
-          </motion.button>
+          <button type="submit" className="bi-submit" style={{ marginTop: '4px' }}>
+            {isLogin ? <><LogIn size={18}/> Connexion</> : <><UserPlus size={18}/> Créer mon compte</>}
+          </button>
         </form>
 
-        <p className="mt-8 text-center text-sm font-bold text-slate-500">
+        <p style={{ marginTop: '24px', textAlign: 'center', fontSize: '13px', color: '#475569' }}>
           {isLogin ? "Nouveau praticien ?" : "Déjà inscrit ?"}
-          <button type="button" onClick={() => setIsLogin(!isLogin)} className="ml-2 text-blue-500 hover:text-blue-400 transition-colors underline underline-offset-4">
+          <button type="button" onClick={() => setIsLogin(!isLogin)}
+            style={{
+              marginLeft: '8px', color: '#00c8c8', background: 'none', border: 'none',
+              cursor: 'pointer', fontWeight: 700, textDecoration: 'underline',
+              textUnderlineOffset: '3px', fontSize: '13px'
+            }}>
             {isLogin ? "S'inscrire" : "Se connecter"}
           </button>
         </p>
       </motion.div>
-      
-      <div className="absolute bottom-8 w-full text-center opacity-20 group">
-         <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">by Belle Imagerie</p>
+
+      {/* Signature */}
+      <div style={{
+        position: 'absolute', bottom: '24px', width: '100%',
+        textAlign: 'center', opacity: 0.2
+      }}>
+        <p style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', letterSpacing: '4px', textTransform: 'uppercase' }}>
+          by Belle Imagerie
+        </p>
       </div>
     </div>
   );

@@ -3,87 +3,141 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { db, auth } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { 
-  collection, addDoc, query, where, onSnapshot, 
-  deleteDoc, doc, serverTimestamp, updateDoc 
+import {
+  collection, addDoc, query, where, onSnapshot,
+  deleteDoc, doc, serverTimestamp, updateDoc
 } from 'firebase/firestore';
-import { 
-  Plus, Trash2, Clock, Calendar as CalIcon, 
+import {
+  Plus, Trash2, Clock, Calendar as CalIcon,
   RotateCw, LogOut, Activity, CheckCircle2, X, Bell, Edit3
 } from 'lucide-react';
 import { format, addWeeks, startOfToday, addDays, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import toast, { Toaster } from 'react-hot-toast';
-const NOTIFICATION_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"; 
-// Un "bip" discret et médical
+
+/* ─── CHARTE BELLE IMAGERIE ───────────────────────────────────────────────
+   Fond principal  : #0a0f2e (bleu marine profond)
+   Accent principal: #00c8c8 (cyan turquoise)
+   Accent secondaire: #6366f1 (indigo violet)
+   Succès          : #00c864 (vert émeraude)
+   Danger          : #f43f5e (rose rouge)
+──────────────────────────────────────────────────────────────────────────── */
+
+const NOTIFICATION_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
+
 const daysOfWeek = [
   { label: 'Lun', value: 1 }, { label: 'Mar', value: 2 }, { label: 'Mer', value: 3 },
   { label: 'Jeu', value: 4 }, { label: 'Ven', value: 5 }, { label: 'Sam', value: 6 }, { label: 'Dim', value: 0 }
 ];
+
+/* ─── STYLES GLOBAUX ────────────────────────────────────────────────────── */
+const BI_STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
+  * { font-family: 'Sora', sans-serif; }
+  body, #root { background: #0a0f2e; }
+
+  .bi-glass {
+    background: rgba(255,255,255,0.025);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .bi-card-slot {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(0,200,200,0.1);
+    border-radius: 20px;
+    transition: all 0.2s ease;
+  }
+  .bi-card-slot:hover {
+    border-color: rgba(0,200,200,0.3);
+    background: rgba(0,200,200,0.03);
+    cursor: pointer;
+  }
+  .bi-input-dark {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0,200,200,0.15);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #e2e8f0;
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .bi-input-dark:focus { border-color: rgba(0,200,200,0.45); }
+  .bi-day-btn {
+    flex: 1; min-width: 52px; padding: 12px 4px;
+    border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);
+    color: #475569; font-weight: 800; font-size: 11px;
+    text-transform: uppercase; cursor: pointer;
+    background: transparent; transition: all 0.15s;
+  }
+  .bi-day-btn:hover { border-color: rgba(0,200,200,0.3); color: #94a3b8; }
+  .bi-day-btn.selected {
+    background: #00c8c8; border-color: #00c8c8;
+    color: #0a0f2e;
+    box-shadow: 0 4px 16px rgba(0,200,200,0.3);
+  }
+  .bi-toggle-track {
+    width: 52px; height: 30px; border-radius: 15px;
+    display: flex; align-items: center; padding: 0 4px;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .bi-submit-modal {
+    flex: 1; padding: 16px;
+    background: #00c8c8; color: #0a0f2e;
+    border: none; border-radius: 14px;
+    font-weight: 800; font-size: 14px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .bi-submit-modal:hover {
+    background: #00e0e0;
+    box-shadow: 0 8px 28px rgba(0,200,200,0.3);
+    transform: translateY(-1px);
+  }
+`;
 
 const DoctorDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [slots, setSlots] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [editingId, setEditingId] = useState(null); 
+  const [editingId, setEditingId] = useState(null);
   const [isRecurring, setIsRecurring] = useState(false);
   const [selectedDays, setSelectedDays] = useState([]);
   const [notifiedSlots, setNotifiedSlots] = useState(new Set());
-  const [formData, setFormData] = useState({ 
-    date: format(new Date(), 'yyyy-MM-dd'), 
-    start: '08:00', 
-    end: '12:00', 
-    weeks: 4 
+  const [formData, setFormData] = useState({
+    date: format(new Date(), 'yyyy-MM-dd'),
+    start: '08:00', end: '12:00', weeks: 4
   });
 
   const doctorName = user?.fullName || user?.displayName || "Médecin";
 
-  // --- SYSTÈME DE NOTIFICATION OPTIMISÉ ---
- const sendNotification = (title, body) => {
-    if (Notification.permission === "granted") {
-      // 1. Jouer le son
-      const audio = new Audio(NOTIFICATION_SOUND);
-      audio.play().catch(e => console.log("Audio bloqué par le navigateur"));
-
-      // 2. Déclencher la vibration (si supporté par Android)
-      if ("vibrate" in navigator) {
-        navigator.vibrate([200, 100, 200]);
-      }
-
-      // 3. Afficher la bannière
-      new Notification(title, {
-        body,
-        icon: "/pwa.png",
-        badge: "/pwa.png",
-        tag: "bi-agenda-alert", // Évite d'empiler 50 notifications
-        requireInteraction: true // Garde la notif visible jusqu'à ce qu'il clique
-      });
-    }
+  /* ── Notifications ── */
+  const sendNotification = (title, body) => {
+    if (Notification.permission !== "granted") return;
+    const audio = new Audio(NOTIFICATION_SOUND);
+    audio.play().catch(() => {});
+    if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+    new Notification(title, {
+      body, icon: "/pwa.png", badge: "/pwa.png",
+      tag: "bi-agenda-alert", requireInteraction: true
+    });
   };
-const checkUpcomingSlots = () => {
-    const now = new Date();
-    const thirtyMinutesFromNow = new Date(now.getTime() + 30 * 60000);
 
+  const checkUpcomingSlots = () => {
+    const now = new Date();
+    const thirtyMin = new Date(now.getTime() + 30 * 60000);
     slots.forEach(slot => {
       const startTime = parseISO(slot.startTime);
-      
-      // ALERTE 30 MIN AVANT
-      if (startTime > now && startTime <= thirtyMinutesFromNow && !notifiedSlots.has(`${slot.id}-30`)) {
-        sendNotification(
-          "⏳ Rappel : 30 minutes",
-          `Dr. ${doctorName}, votre séance de ${format(startTime, 'HH:mm')} approche.`
-        );
+      if (startTime > now && startTime <= thirtyMin && !notifiedSlots.has(`${slot.id}-30`)) {
+        sendNotification("⏳ Rappel : 30 minutes", `Dr. ${doctorName}, votre séance de ${format(startTime, 'HH:mm')} approche.`);
         setNotifiedSlots(prev => new Set(prev).add(`${slot.id}-30`));
       }
-
-      // ALERTE À L'HEURE PILE (marge de 60s pour le scanneur)
-      const diffInSeconds = Math.abs((startTime.getTime() - now.getTime()) / 1000);
-      if (diffInSeconds < 60 && !notifiedSlots.has(`${slot.id}-now`)) {
-        sendNotification(
-          "🚨 DÉBUT DU CRÉNEAU",
-          `Il est ${format(startTime, 'HH:mm')}. Votre vacation commence maintenant.`
-        );
+      const diff = Math.abs((startTime.getTime() - now.getTime()) / 1000);
+      if (diff < 60 && !notifiedSlots.has(`${slot.id}-now`)) {
+        sendNotification("🚨 DÉBUT DU CRÉNEAU", `Il est ${format(startTime, 'HH:mm')}. Votre vacation commence maintenant.`);
         setNotifiedSlots(prev => new Set(prev).add(`${slot.id}-now`));
       }
     });
@@ -92,43 +146,37 @@ const checkUpcomingSlots = () => {
   useEffect(() => {
     if (Notification.permission === "granted" && slots.length > 0) {
       checkUpcomingSlots();
-      const interval = setInterval(checkUpcomingSlots, 5 * 60000);
-      return () => clearInterval(interval);
+      const iv = setInterval(checkUpcomingSlots, 5 * 60000);
+      return () => clearInterval(iv);
     }
   }, [slots, notifiedSlots]);
 
   const requestNotificationPermission = async () => {
-    if (!("Notification" in window)) {
-      toast.error("Notifications non supportées.");
-      return;
-    }
+    if (!("Notification" in window)) { toast.error("Notifications non supportées."); return; }
     const permission = await Notification.requestPermission();
     if (permission === "granted") {
-      sendNotification("Rappels activés !", "Vous serez alerté 30 min avant chaque créneau.");
-      toast.success("Rappels activés !");
+      sendNotification("BI-AGENDA", "Rappels automatiques activés ! ⏳");
+      toast.success("Alertes activées !");
     }
   };
 
-  // --- LOGIQUE FIRESTORE ---
+  /* ── Firestore ── */
   useEffect(() => {
     if (!user?.uid) return;
     const q = query(collection(db, "availability"), where("userId", "==", user.uid));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const unsub = onSnapshot(q, snap => {
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setSlots(data.sort((a, b) => new Date(a.startTime) - new Date(b.startTime)));
     });
-    return () => unsubscribe();
-  }, [user.uid]);
+    return () => unsub();
+  }, [user?.uid]);
 
   const handleDelete = async (id) => {
-    if (window.confirm("Supprimer ce créneau ?")) {
-      try {
-        await deleteDoc(doc(db, "availability", id));
-        toast.success("Supprimé");
-      } catch (e) {
-        toast.error("Erreur de suppression");
-      }
-    }
+    if (!window.confirm("Supprimer ce créneau ?")) return;
+    try {
+      await deleteDoc(doc(db, "availability", id));
+      toast.success("Supprimé");
+    } catch { toast.error("Erreur de suppression"); }
   };
 
   const handleSave = async (e) => {
@@ -139,48 +187,37 @@ const checkUpcomingSlots = () => {
       const endDateTime = new Date(`${formData.date}T${formData.end}`).toISOString();
 
       if (editingId) {
-        await updateDoc(doc(db, "availability", editingId), {
-          startTime: startDateTime,
-          endTime: endDateTime,
-        });
-      } else {
-        if (isRecurring) {
-          if (selectedDays.length === 0) throw new Error("Choisissez au moins un jour");
-          const batchPromises = selectedDays.flatMap(dayValue => {
-            let currentPtr = startOfToday();
-            while (currentPtr.getDay() !== dayValue) { currentPtr = addDays(currentPtr, 1); }
-            return Array.from({ length: formData.weeks }).map((_, i) => {
-              const targetDate = addWeeks(currentPtr, i);
-              return addDoc(collection(db, "availability"), {
-                userId: user.uid,
-                doctorName,
-                startTime: new Date(`${format(targetDate, 'yyyy-MM-dd')}T${formData.start}`).toISOString(),
-                endTime: new Date(`${format(targetDate, 'yyyy-MM-dd')}T${formData.end}`).toISOString(),
-                isRecurring: true,
-                createdAt: serverTimestamp()
-              });
+        await updateDoc(doc(db, "availability", editingId), { startTime: startDateTime, endTime: endDateTime });
+      } else if (isRecurring) {
+        if (selectedDays.length === 0) throw new Error("Choisissez au moins un jour");
+        const batchPromises = selectedDays.flatMap(dayValue => {
+          let ptr = startOfToday();
+          while (ptr.getDay() !== dayValue) ptr = addDays(ptr, 1);
+          return Array.from({ length: formData.weeks }).map((_, i) => {
+            const targetDate = addWeeks(ptr, i);
+            return addDoc(collection(db, "availability"), {
+              userId: user.uid, doctorName, isRecurring: true, createdAt: serverTimestamp(),
+              startTime: new Date(`${format(targetDate, 'yyyy-MM-dd')}T${formData.start}`).toISOString(),
+              endTime: new Date(`${format(targetDate, 'yyyy-MM-dd')}T${formData.end}`).toISOString(),
             });
           });
-          await Promise.all(batchPromises);
-        } else {
-          await addDoc(collection(db, "availability"), {
-            userId: user.uid, doctorName, startTime: startDateTime, endTime: endDateTime, isRecurring: false, createdAt: serverTimestamp()
-          });
-        }
+        });
+        await Promise.all(batchPromises);
+      } else {
+        await addDoc(collection(db, "availability"), {
+          userId: user.uid, doctorName, isRecurring: false,
+          startTime: startDateTime, endTime: endDateTime, createdAt: serverTimestamp()
+        });
       }
+
       toast.success("Succès !", { id: loading });
-      setShowModal(false);
-      setEditingId(null);
-      setSelectedDays([]);
-    } catch (error) {
-      toast.error(error.message, { id: loading });
-    }
+      setShowModal(false); setEditingId(null); setSelectedDays([]);
+    } catch (err) { toast.error(err.message, { id: loading }); }
   };
 
   const openEditModal = (slot) => {
     const start = parseISO(slot.startTime);
-    setEditingId(slot.id);
-    setIsRecurring(false);
+    setEditingId(slot.id); setIsRecurring(false);
     setFormData({
       date: format(start, 'yyyy-MM-dd'),
       start: format(start, 'HH:mm'),
@@ -190,96 +227,199 @@ const checkUpcomingSlots = () => {
     setShowModal(true);
   };
 
+  /* ─────────────────── RENDER ─────────────────── */
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-blue-500/30">
-      <Toaster position="top-right" />
-      
-      <nav className="fixed top-0 w-full z-50 glass border-b border-white/5 px-4 md:px-8 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-600/20"><Activity className="text-white" size={22} /></div>
-          <h1 className="text-xl font-black tracking-tight uppercase italic">
-  BI-<span className="text-blue-500">AGENDA</span>
-</h1>
+    <div style={{ background: '#0a0f2e', minHeight: '100vh', color: '#e2e8f0' }}>
+      <style>{BI_STYLES}</style>
+      <Toaster
+        position="top-right"
+        toastOptions={{ style: { background: '#0f172a', color: '#e2e8f0', border: '1px solid rgba(0,200,200,0.2)' } }}
+      />
+
+      {/* Lumières d'ambiance */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-5%', right: '-5%', width: '40%', height: '40%',
+          background: 'radial-gradient(circle, rgba(0,200,200,0.06) 0%, transparent 70%)', borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', bottom: '-5%', left: '-5%', width: '40%', height: '40%',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 70%)', borderRadius: '50%' }} />
+      </div>
+
+      {/* ─── NAVBAR ──────────────────────────────────────────────────── */}
+      <nav className="bi-glass" style={{
+        position: 'fixed', top: 0, width: '100%', zIndex: 50,
+        borderBottom: '1px solid rgba(0,200,200,0.1)',
+        padding: '14px 24px'
+      }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ background: '#00c8c8', borderRadius: '12px', padding: '8px', boxShadow: '0 4px 16px rgba(0,200,200,0.25)' }}>
+              <Activity style={{ color: '#0a0f2e' }} size={20} />
+            </div>
+            <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', fontStyle: 'italic', textTransform: 'uppercase' }}>
+              BI-<span style={{ color: '#00c8c8' }}>AGENDA</span>
+            </h1>
           </div>
-          <div className="flex items-center gap-4">
-<motion.button 
-  whileHover={{ scale: 1.05 }}
-  whileTap={{ scale: 0.9, rotate: -10 }} // Sensation de bouton physique
-  onClick={async () => {
-    const loadingToast = toast.loading("Activation des alertes...");
-    try {
-      await requestNotificationPermission();
-      // On joue un petit son test pour débloquer l'audio sur mobile
-      const audio = new Audio(NOTIFICATION_SOUND);
-      audio.muted = true; 
-      audio.play(); 
-      toast.success("Alertes configurées !", { id: loadingToast });
-    } catch (err) {
-      toast.error("Erreur d'activation", { id: loadingToast });
-    }
-  }} 
-  className="p-3 rounded-2xl bg-blue-500/10 text-blue-400 hover:bg-blue-600 hover:text-white transition-all border border-blue-500/20 shadow-lg active:bg-blue-700"
->
-  <Bell size={20} className={Notification.permission === "granted" ? "fill-blue-400 group-hover:fill-white" : ""} />
-</motion.button>
-             <button onClick={() => { auth.signOut(); navigate('/auth'); }} className="p-3 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20"><LogOut size={20} /></button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Bouton notifications */}
+            <motion.button
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.9 }}
+              onClick={requestNotificationPermission}
+              style={{
+                padding: '10px', borderRadius: '12px',
+                background: 'rgba(0,200,200,0.08)', color: '#00c8c8',
+                border: '1px solid rgba(0,200,200,0.2)', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+              <Bell size={18} />
+            </motion.button>
+            {/* Bouton déconnexion */}
+            <button
+              onClick={() => { auth.signOut(); navigate('/auth'); }}
+              style={{
+                padding: '10px', borderRadius: '12px',
+                background: 'rgba(244,63,94,0.08)', color: '#f43f5e',
+                border: '1px solid rgba(244,63,94,0.2)', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto p-4 md:p-8 pt-28 md:pt-32">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight italic uppercase">Mon Planning</h2>
-            <p className="text-slate-400 text-lg">Gérez vos disponibilités d'interprétation.</p>
+      {/* ─── CONTENU PRINCIPAL ──────────────────────────────────────── */}
+      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '120px 24px 48px' }}>
+
+        {/* En-tête de page */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '24px', marginBottom: '40px', flexWrap: 'wrap' }}>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1.5px', fontStyle: 'italic', textTransform: 'uppercase', lineHeight: 1.05 }}>
+              Mon Planning
+            </h2>
+            <p style={{ color: '#475569', fontSize: '15px', marginTop: '6px' }}>
+              Gérez vos disponibilités d'interprétation.
+            </p>
           </motion.div>
-          <button onClick={() => { setEditingId(null); setShowModal(true); }} className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-[2rem] font-bold shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3 transition-all active:scale-95">
-            <Plus size={24} /> Nouvelle Disponibilité
+          <button
+            onClick={() => { setEditingId(null); setShowModal(true); }}
+            style={{
+              background: '#00c8c8', color: '#0a0f2e',
+              padding: '14px 24px', borderRadius: '18px', border: 'none',
+              fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '8px',
+              boxShadow: '0 8px 28px rgba(0,200,200,0.25)',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Plus size={20} /> Nouvelle Disponibilité
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-1">
-            <div className="glass p-8 rounded-[2.5rem] border border-white/5 sticky top-32 shadow-2xl overflow-hidden">
-              <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Total Créneaux</p>
-              <h3 className="text-6xl font-black text-white mb-6 tracking-tighter">{slots.length}</h3>
-              <div className="flex items-center gap-3 text-emerald-400 bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/20">
-                <CheckCircle2 size={20} />
-                <span className="text-sm font-bold">Système synchronisé</span>
-              </div>
+        {/* Grille principale */}
+        <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '20px' }}>
+
+          {/* Colonne statistiques */}
+          <div className="bi-glass" style={{
+            padding: '28px', borderRadius: '24px',
+            border: '1px solid rgba(0,200,200,0.12)',
+            position: 'sticky', top: '96px', alignSelf: 'start'
+          }}>
+            <p style={{ fontSize: '10px', color: '#334155', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
+              Total Créneaux
+            </p>
+            <h3 style={{ fontSize: '56px', fontWeight: 800, color: '#fff', lineHeight: 1, marginBottom: '20px', letterSpacing: '-2px' }}>
+              {slots.length}
+            </h3>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              background: 'rgba(0,200,100,0.08)',
+              border: '1px solid rgba(0,200,100,0.2)',
+              borderRadius: '12px', padding: '12px',
+              color: '#00c864'
+            }}>
+              <CheckCircle2 size={16} />
+              <span style={{ fontSize: '12px', fontWeight: 700 }}>Système synchronisé</span>
             </div>
           </div>
 
-          <div className="lg:col-span-3 space-y-4">
+          {/* Liste des créneaux */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <AnimatePresence mode="popLayout">
               {slots.length === 0 ? (
-                <div className="py-24 glass rounded-[3rem] border-dashed border-2 border-white/5 flex flex-col items-center justify-center text-slate-500 text-center px-6">
-                  <CalIcon size={40} className="opacity-20 mb-6" />
-                  <p className="text-xl font-bold italic uppercase tracking-tighter">Aucun créneau planifié</p>
+                <div style={{
+                  padding: '80px 24px', borderRadius: '24px',
+                  border: '2px dashed rgba(0,200,200,0.1)',
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  color: '#334155', textAlign: 'center'
+                }}>
+                  <CalIcon size={36} style={{ opacity: 0.3, marginBottom: '16px' }} />
+                  <p style={{ fontSize: '18px', fontWeight: 800, fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.5px' }}>
+                    Aucun créneau planifié
+                  </p>
                 </div>
               ) : (
-                slots.map((slot) => (
-                  <motion.div 
-                    layout key={slot.id} onClick={() => openEditModal(slot)}
-                    initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-                    className="glass p-6 rounded-[2rem] flex items-center justify-between group border border-white/5 hover:border-blue-500/30 transition-all shadow-lg cursor-pointer"
+                slots.map(slot => (
+                  <motion.div
+                    layout key={slot.id}
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    onClick={() => openEditModal(slot)}
+                    className="bi-card-slot"
+                    style={{ padding: '18px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                   >
-                    <div className="flex items-center gap-6">
-                      <div className={`p-4 rounded-2xl ${slot.isRecurring ? 'bg-purple-500/10 text-purple-400' : 'bg-blue-500/10 text-blue-400 shadow-inner'}`}>
-                        {slot.isRecurring ? <RotateCw size={26} className="animate-spin-slow"/> : <Clock size={26}/>}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      {/* Icône du créneau */}
+                      <div style={{
+                        padding: '12px', borderRadius: '14px',
+                        background: slot.isRecurring ? 'rgba(99,102,241,0.12)' : 'rgba(0,200,200,0.1)',
+                      }}>
+                        {slot.isRecurring
+                          ? <RotateCw size={22} style={{ color: '#818cf8' }} />
+                          : <Clock size={22} style={{ color: '#00c8c8' }} />}
                       </div>
                       <div>
-                        <h4 className="font-black text-xl text-white capitalize italic">{format(parseISO(slot.startTime), 'EEEE d MMMM', { locale: fr })}</h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-slate-400 font-bold bg-white/5 px-3 py-1 rounded-lg text-xs md:text-sm">{format(parseISO(slot.startTime), 'HH:mm')} — {format(parseISO(slot.endTime), 'HH:mm')}</span>
-                          {slot.isRecurring && <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full font-black uppercase">Récurrent</span>}
+                        <h4 style={{ fontWeight: 700, fontSize: '16px', color: '#fff', fontStyle: 'italic', textTransform: 'capitalize' }}>
+                          {format(parseISO(slot.startTime), 'EEEE d MMMM', { locale: fr })}
+                        </h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                          <span style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            color: '#64748b', padding: '3px 10px',
+                            borderRadius: '6px', fontSize: '12px', fontWeight: 600
+                          }}>
+                            {format(parseISO(slot.startTime), 'HH:mm')} — {format(parseISO(slot.endTime), 'HH:mm')}
+                          </span>
+                          {slot.isRecurring && (
+                            <span style={{
+                              background: 'rgba(99,102,241,0.15)',
+                              color: '#818cf8', padding: '2px 8px',
+                              borderRadius: '20px', fontSize: '10px',
+                              fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px'
+                            }}>
+                              Récurrent
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Edit3 size={18} className="text-slate-600 group-hover:text-blue-400 transition-colors" />
-                        <button onClick={(e) => { e.stopPropagation(); handleDelete(slot.id); }} className="p-4 text-slate-600 hover:text-red-400 transition-all"><Trash2 size={20} /></button>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Edit3 size={16} style={{ color: '#334155' }} />
+                      <button
+                        onClick={e => { e.stopPropagation(); handleDelete(slot.id); }}
+                        style={{
+                          padding: '10px', background: 'none', border: 'none',
+                          color: '#334155', cursor: 'pointer', borderRadius: '8px',
+                          transition: 'color 0.2s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#f43f5e'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#334155'}
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   </motion.div>
                 ))
@@ -289,64 +429,131 @@ const checkUpcomingSlots = () => {
         </div>
       </main>
 
+      {/* ─── MODAL AJOUT / ÉDITION ──────────────────────────────────── */}
       <AnimatePresence>
         {showModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowModal(false)} className="absolute inset-0 bg-[#020617]/95 backdrop-blur-md" />
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="glass p-8 w-full max-w-xl relative z-10 border border-white/10 shadow-2xl rounded-[3rem]">
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-black text-white tracking-tighter uppercase italic">{editingId ? 'Modifier' : 'Nouveau Créneau'}</h2>
-                <button onClick={() => setShowModal(false)} className="p-2 hover:bg-white/5 rounded-full text-slate-500"><X size={24} /></button>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowModal(false)}
+              style={{ position: 'absolute', inset: 0, background: 'rgba(5,7,20,0.92)', backdropFilter: 'blur(12px)' }}
+            />
+
+            {/* Contenu modal */}
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              className="bi-glass"
+              style={{
+                padding: '36px', width: '100%', maxWidth: '520px',
+                position: 'relative', zIndex: 10,
+                border: '1px solid rgba(0,200,200,0.2)',
+                borderRadius: '28px'
+              }}
+            >
+              {/* En-tête modal */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+                <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-1px', fontStyle: 'italic', textTransform: 'uppercase' }}>
+                  {editingId ? 'Modifier' : 'Nouveau Créneau'}
+                </h2>
+                <button onClick={() => setShowModal(false)}
+                  style={{ padding: '8px', background: 'none', border: 'none', color: '#475569', cursor: 'pointer', borderRadius: '8px' }}>
+                  <X size={22} />
+                </button>
               </div>
 
-              <form onSubmit={handleSave} className="space-y-6">
+              <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+                {/* Toggle récurrence */}
                 {!editingId && (
-                  <div className="flex items-center justify-between p-6 bg-slate-900/50 rounded-3xl border border-white/5">
-                    <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-xl ${isRecurring ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-500'}`}><RotateCw size={20} /></div>
-                        <div><p className="font-bold text-white">Mode Récurrence</p></div>
+                  <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '18px 20px', background: 'rgba(255,255,255,0.03)',
+                    borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div style={{
+                        padding: '10px', borderRadius: '10px',
+                        background: isRecurring ? 'rgba(0,200,200,0.15)' : 'rgba(255,255,255,0.04)'
+                      }}>
+                        <RotateCw size={18} style={{ color: isRecurring ? '#00c8c8' : '#475569' }} />
+                      </div>
+                      <span style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '14px' }}>Mode Récurrence</span>
                     </div>
-                    <button type="button" onClick={() => setIsRecurring(!isRecurring)} className={`w-14 h-8 rounded-full flex items-center px-1 transition-colors ${isRecurring ? 'bg-blue-600' : 'bg-slate-700'}`}>
-                      <motion.div animate={{ x: isRecurring ? 24 : 0 }} className="w-6 h-6 bg-white rounded-full shadow-lg" />
+                    <button type="button" onClick={() => setIsRecurring(!isRecurring)}
+                      className="bi-toggle-track"
+                      style={{ background: isRecurring ? '#00c8c8' : 'rgba(255,255,255,0.08)' }}>
+                      <motion.div animate={{ x: isRecurring ? 22 : 0 }}
+                        style={{ width: 22, height: 22, background: '#fff', borderRadius: '50%', boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }} />
                     </button>
                   </div>
                 )}
 
-                <div className="space-y-4">
-                  {isRecurring && !editingId ? (
-                    <div className="space-y-6">
-                        <div className="flex flex-wrap gap-2">
-                        {daysOfWeek.map(day => (
-                            <button key={day.value} type="button" onClick={() => setSelectedDays(prev => prev.includes(day.value) ? prev.filter(d => d !== day.value) : [...prev, day.value])}
-                            className={`flex-1 min-w-[60px] py-4 rounded-2xl border font-black text-[10px] uppercase transition-all ${selectedDays.includes(day.value) ? 'bg-blue-600 border-blue-500 text-white shadow-lg' : 'border-white/5 text-slate-500'}`}>{day.label}</button>
-                        ))}
-                        </div>
-                        <div className="bg-slate-900/50 p-6 rounded-3xl border border-white/5">
-                            <div className="flex justify-between mb-4">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Période : {formData.weeks} semaines</label>
-                            </div>
-                            <input type="range" min="1" max="12" value={formData.weeks} onChange={e => setFormData({...formData, weeks: e.target.value})} className="w-full accent-blue-600 bg-slate-800 h-2 rounded-lg appearance-none cursor-pointer" />
-                        </div>
+                {/* Sélection des jours (récurrent) */}
+                {isRecurring && !editingId ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {daysOfWeek.map(day => (
+                        <button key={day.value} type="button"
+                          className={`bi-day-btn ${selectedDays.includes(day.value) ? 'selected' : ''}`}
+                          onClick={() => setSelectedDays(prev =>
+                            prev.includes(day.value) ? prev.filter(d => d !== day.value) : [...prev, day.value]
+                          )}>
+                          {day.label}
+                        </button>
+                      ))}
                     </div>
-                  ) : (
-                    <input type="date" required className="w-full bg-slate-900 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
-                  )}
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase text-slate-500 ml-4">Début</label>
-                        <input type="time" required className="w-full bg-slate-900 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold" value={formData.start} onChange={e => setFormData({...formData, start: e.target.value})} />
+                    <div style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: '14px', padding: '18px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '10px', color: '#334155', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase' }}>
+                          Période : {formData.weeks} semaines
+                        </span>
+                      </div>
+                      <input type="range" min="1" max="12" value={formData.weeks}
+                        onChange={e => setFormData({ ...formData, weeks: e.target.value })}
+                        style={{ width: '100%', accentColor: '#00c8c8' }} />
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase text-slate-500 ml-4">Fin</label>
-                        <input type="time" required className="w-full bg-slate-900 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold" value={formData.end} onChange={e => setFormData({...formData, end: e.target.value})} />
-                    </div>
+                  </div>
+                ) : (
+                  <input type="date" required className="bi-input-dark"
+                    value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} />
+                )}
+
+                {/* Horaires */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ fontSize: '10px', color: '#334155', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '6px', paddingLeft: '4px' }}>
+                      Début
+                    </label>
+                    <input type="time" required className="bi-input-dark"
+                      value={formData.start} onChange={e => setFormData({ ...formData, start: e.target.value })} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '10px', color: '#334155', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '6px', paddingLeft: '4px' }}>
+                      Fin
+                    </label>
+                    <input type="time" required className="bi-input-dark"
+                      value={formData.end} onChange={e => setFormData({ ...formData, end: e.target.value })} />
                   </div>
                 </div>
 
-                <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-5 font-bold text-slate-500">Annuler</button>
-                  <button type="submit" className="flex-1 bg-blue-600 py-5 rounded-[1.5rem] font-black text-white hover:bg-blue-500 shadow-xl shadow-blue-600/20 transition-all uppercase tracking-tighter italic">Confirmer</button>
+                {/* Boutons actions */}
+                <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                  <button type="button" onClick={() => setShowModal(false)}
+                    style={{
+                      flex: 1, padding: '16px', background: 'none', border: 'none',
+                      color: '#475569', fontWeight: 700, cursor: 'pointer', fontSize: '14px'
+                    }}>
+                    Annuler
+                  </button>
+                  <button type="submit" className="bi-submit-modal">
+                    Confirmer
+                  </button>
                 </div>
               </form>
             </motion.div>

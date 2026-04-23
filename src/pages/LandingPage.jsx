@@ -2,141 +2,271 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ShieldCheck, Activity, Clock, Zap, 
-  ChevronRight, Microscope, Layers
+  Activity, Clock, Zap, 
+  ChevronRight, Layers
 } from 'lucide-react';
+
+/* ─── CHARTE BELLE IMAGERIE ───────────────────────────────────────────────
+   Fond principal  : #0a0f2e (bleu marine profond)
+   Accent principal: #00c8c8 (cyan turquoise)
+   Accent secondaire: #6366f1 (indigo violet)
+   Texte principal : #ffffff
+   Texte secondaire: #94a3b8
+   Texte tertiaire : #475569
+   Bordure accent  : rgba(0, 200, 200, 0.15)
+──────────────────────────────────────────────────────────────────────────── */
 
 const LandingPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 overflow-x-hidden selection:bg-blue-500/30 font-sans">
-      
-      {/* Effets de lumière en arrière-plan */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/10 rounded-full blur-[120px]" />
+    <div
+      style={{ fontFamily: "'Sora', 'Nunito', sans-serif" }}
+      className="min-h-screen text-slate-200 overflow-x-hidden selection:bg-cyan-500/30"
+      // Fond bleu marine de Belle Imagerie
+      css={`background: #0a0f2e;`}
+    >
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
+        * { font-family: 'Sora', sans-serif; }
+        body, #root { background: #0a0f2e; }
+
+        .bi-glass {
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+        }
+        .bi-glow-cyan {
+          box-shadow: 0 0 40px rgba(0, 200, 200, 0.15);
+        }
+        .bi-btn-primary {
+          background: #00c8c8;
+          color: #0a0f2e;
+          transition: all 0.2s ease;
+        }
+        .bi-btn-primary:hover {
+          background: #00e0e0;
+          box-shadow: 0 8px 32px rgba(0, 200, 200, 0.35);
+          transform: translateY(-1px);
+        }
+        .bi-card:hover {
+          border-color: rgba(0, 200, 200, 0.3) !important;
+          background: rgba(0, 200, 200, 0.04) !important;
+        }
+        .bi-nav-btn:hover {
+          background: #00e0e0;
+        }
+      `}</style>
+
+      {/* Fond avec lumières d'ambiance */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ background: '#0a0f2e' }}>
+        {/* Lumière cyan en haut gauche */}
+        <div style={{
+          position: 'absolute', top: '-5%', left: '-5%',
+          width: '45%', height: '45%',
+          background: 'radial-gradient(circle, rgba(0,200,200,0.08) 0%, transparent 70%)',
+          borderRadius: '50%'
+        }} />
+        {/* Lumière indigo en bas droite */}
+        <div style={{
+          position: 'absolute', bottom: '-10%', right: '-5%',
+          width: '50%', height: '50%',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%)',
+          borderRadius: '50%'
+        }} />
+        {/* Petite lumière centrale */}
+        <div style={{
+          position: 'absolute', top: '35%', left: '50%',
+          width: '30%', height: '30%',
+          transform: 'translateX(-50%)',
+          background: 'radial-gradient(circle, rgba(0,200,200,0.04) 0%, transparent 70%)',
+          borderRadius: '50%'
+        }} />
       </div>
 
-      {/* --- NAVBAR --- */}
-      <nav className="fixed top-0 w-full z-50 glass border-b border-white/5 px-6 py-5 backdrop-blur-2xl">
+      {/* ─── NAVBAR ─────────────────────────────────────────────────────── */}
+      <nav className="fixed top-0 w-full z-50 bi-glass px-6 py-4"
+        style={{ borderBottom: '1px solid rgba(0,200,200,0.1)' }}>
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-600/20">
-              <Activity className="text-white" size={24} />
+            <div style={{ background: '#00c8c8', borderRadius: '12px', padding: '8px' }}
+              className="bi-glow-cyan">
+              <Activity style={{ color: '#0a0f2e' }} size={22} />
             </div>
-            <h1 className="text-2xl font-black tracking-tighter text-white italic uppercase">
-              BI-<span className="text-blue-500">AGENDA</span>
+            <h1 className="text-xl font-black tracking-tighter text-white italic uppercase">
+              BI-<span style={{ color: '#00c8c8' }}>AGENDA</span>
             </h1>
           </div>
-          <button 
+          <button
             onClick={() => navigate('/auth')}
-            className="px-8 py-3 rounded-full bg-blue-600 text-white text-sm font-black hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-95"
+            className="bi-btn-primary bi-nav-btn px-6 py-2.5 rounded-full font-bold text-sm active:scale-95"
           >
             ESPACE PRATICIEN
           </button>
         </div>
       </nav>
 
-      {/* --- HERO SECTION --- */}
-      <section className="relative pt-48 pb-20 px-6">
+      {/* ─── HERO ────────────────────────────────────────────────────────── */}
+      <section className="relative pt-44 pb-20 px-6">
         <div className="max-w-5xl mx-auto text-center">
+
+          {/* Badge */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-10"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-10"
+            style={{
+              background: 'rgba(0,200,200,0.08)',
+              border: '1px solid rgba(0,200,200,0.25)'
+            }}
           >
-            <Zap size={14} className="text-blue-400" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Innovation Belle Imagerie</span>
+            <Zap size={12} style={{ color: '#00c8c8' }} />
+            <span className="text-xs font-black uppercase tracking-widest" style={{ color: '#00c8c8' }}>
+              Innovation Belle Imagerie
+            </span>
           </motion.div>
 
-          <motion.h1 
+          {/* Titre principal */}
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-6xl md:text-9xl font-black text-white mb-8 tracking-tighter leading-[0.85] italic uppercase"
+            className="font-black text-white italic uppercase mb-8 tracking-tighter leading-none"
+            style={{ fontSize: 'clamp(44px, 9vw, 96px)' }}
           >
-            DISPONIBILITÉ <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-400">
+            DISPONIBILITÉ{' '}
+            <span style={{
+              color: 'transparent',
+              backgroundImage: 'linear-gradient(90deg, #00c8c8, #6366f1)',
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text'
+            }}>
               EN TEMPS RÉEL.
             </span>
           </motion.h1>
 
-          <motion.div 
+          {/* Sous-titre */}
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="max-w-3xl mx-auto mb-16 space-y-6"
+            className="max-w-3xl mx-auto mb-14 space-y-4"
           >
-            <p className="text-slate-300 text-xl md:text-2xl font-bold leading-snug">
-              BI-AGENDA est la solution stratégique de Belle Imagerie pour <span className="text-white underline decoration-blue-500 underline-offset-4">fluidifier le diagnostic médical.</span>
+            <p className="text-slate-300 font-semibold leading-snug" style={{ fontSize: '18px' }}>
+              BI-AGENDA est la solution stratégique de Belle Imagerie pour{' '}
+              <span className="text-white" style={{
+                textDecoration: 'underline',
+                textDecorationColor: '#00c8c8',
+                textUnderlineOffset: '4px'
+              }}>
+                fluidifier le diagnostic médical.
+              </span>
             </p>
-            <p className="text-slate-500 text-lg md:text-xl font-medium">
-              Synchronisez la disponibilité des médecins pour <span className="text-slate-200">éliminer l'attente d’interprétation</span> et garantir une prise en charge immédiate.
+            <p style={{ color: '#64748b', fontSize: '16px' }}>
+              Synchronisez la disponibilité des médecins pour{' '}
+              <span style={{ color: '#94a3b8' }}>éliminer l'attente d'interprétation</span>{' '}
+              et garantir une prise en charge immédiate.
             </p>
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
           >
-            <button 
+            <button
               onClick={() => navigate('/auth')}
-              className="group bg-white text-[#020617] px-12 py-6 rounded-[2.5rem] font-black text-xl shadow-2xl shadow-white/5 flex items-center gap-3 mx-auto transition-all hover:scale-105"
+              className="group bi-btn-primary font-black text-lg rounded-[2.5rem] px-12 py-5 flex items-center gap-3 mx-auto"
+              style={{ fontSize: '18px' }}
             >
               Lancer BI-AGENDA
-              <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" />
+              <ChevronRight size={22} className="group-hover:translate-x-1 transition-transform" style={{ color: '#0a0f2e' }} />
             </button>
           </motion.div>
         </div>
       </section>
 
-      {/* --- GRID DE MISSION --- */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="glass p-12 rounded-[3.5rem] border border-white/5 flex flex-col justify-between h-full">
-                <Clock className="text-blue-500 mb-8" size={48} />
-                <div>
-                    <h3 className="text-3xl font-black text-white italic uppercase mb-4">Zéro Attente</h3>
-                    <p className="text-slate-500 text-lg font-medium leading-relaxed">
-                        Visualisez instantanément quel spécialiste est actif pour interpréter vos examens sans délai.
-                    </p>
-                </div>
+      {/* ─── FEATURES ────────────────────────────────────────────────────── */}
+      <section className="py-16 px-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          {/* Carte 1 — Zéro Attente */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bi-card bi-glass p-10 rounded-[2.5rem] flex flex-col justify-between transition-all duration-300"
+            style={{ border: '1px solid rgba(0,200,200,0.12)' }}
+          >
+            <div style={{
+              width: '56px', height: '56px',
+              background: 'rgba(0,200,200,0.12)',
+              borderRadius: '16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: '28px'
+            }}>
+              <Clock style={{ color: '#00c8c8' }} size={28} />
             </div>
-            <div className="glass p-12 rounded-[3.5rem] border border-white/5 flex flex-col justify-between h-full">
-                <Layers className="text-indigo-500 mb-8" size={48} />
-                <div>
-                    <h3 className="text-3xl font-black text-white italic uppercase mb-4">Interface Agile</h3>
-                    <p className="text-slate-500 text-lg font-medium leading-relaxed">
-                        Un outil léger, conçu pour s'intégrer parfaitement au quotidien des centres d'imagerie.
-                    </p>
-                </div>
+            <div>
+              <h3 className="text-3xl font-black text-white italic uppercase mb-3 tracking-tighter">
+                Zéro Attente
+              </h3>
+              <p style={{ color: '#64748b', fontSize: '16px', lineHeight: '1.7' }}>
+                Visualisez instantanément quel spécialiste est actif pour interpréter vos examens sans délai.
+              </p>
             </div>
+          </motion.div>
+
+          {/* Carte 2 — Interface Agile */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="bi-card bi-glass p-10 rounded-[2.5rem] flex flex-col justify-between transition-all duration-300"
+            style={{ border: '1px solid rgba(99,102,241,0.15)' }}
+          >
+            <div style={{
+              width: '56px', height: '56px',
+              background: 'rgba(99,102,241,0.12)',
+              borderRadius: '16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: '28px'
+            }}>
+              <Layers style={{ color: '#818cf8' }} size={28} />
+            </div>
+            <div>
+              <h3 className="text-3xl font-black text-white italic uppercase mb-3 tracking-tighter">
+                Interface Agile
+              </h3>
+              <p style={{ color: '#64748b', fontSize: '16px', lineHeight: '1.7' }}>
+                Un outil léger, conçu pour s'intégrer parfaitement au quotidien des centres d'imagerie.
+              </p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* --- FOOTER & SIGNATURE --- */}
-      <footer className="pt-20 pb-12 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col items-center gap-8">
-            <div className="flex items-center gap-4 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
-                <div className="h-[1px] w-12 bg-slate-500"></div>
-                <span className="text-xs font-black uppercase tracking-[0.5em] text-slate-400">DESIGNED BY</span>
-                <div className="h-[1px] w-12 bg-slate-500"></div>
-            </div>
-            
-            <div className="flex flex-col items-center">
-                <h2 className="text-4xl font-black text-white tracking-tighter italic uppercase">
-                    BELLE <span className="text-blue-500">IMAGERIE</span>
-                </h2>
-                <p className="text-slate-600 text-[10px] font-black uppercase tracking-[0.3em] mt-2">
-                    Excellence & Diagnostic
-                </p>
-            </div>
-
-            <div className="mt-12 text-slate-700 text-[9px] font-bold uppercase tracking-widest">
-                &copy; 2026 BI-AGENDA — Propriété exclusive de Belle Imagerie
-            </div>
+      {/* ─── FOOTER ──────────────────────────────────────────────────────── */}
+      <footer className="pt-16 pb-10 px-6" style={{ borderTop: '1px solid rgba(0,200,200,0.08)' }}>
+        <div className="max-w-7xl mx-auto flex flex-col items-center gap-6">
+          <div className="flex items-center gap-4" style={{ opacity: 0.5 }}>
+            <div style={{ height: '1px', width: '40px', background: '#475569' }} />
+            <span className="text-xs font-black uppercase tracking-widest" style={{ color: '#64748b' }}>DESIGNED BY</span>
+            <div style={{ height: '1px', width: '40px', background: '#475569' }} />
+          </div>
+          <div className="flex flex-col items-center">
+            <h2 className="text-3xl font-black text-white tracking-tighter italic uppercase">
+              BELLE <span style={{ color: '#00c8c8' }}>IMAGERIE</span>
+            </h2>
+            <p className="text-xs font-black uppercase tracking-widest mt-2" style={{ color: '#334155' }}>
+              Excellence & Diagnostic
+            </p>
+          </div>
+          <div className="text-xs font-bold uppercase tracking-widest mt-8" style={{ color: '#1e293b' }}>
+            &copy; 2026 BI-AGENDA — Propriété exclusive de Belle Imagerie
+          </div>
         </div>
       </footer>
     </div>
