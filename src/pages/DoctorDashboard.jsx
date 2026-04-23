@@ -33,7 +33,7 @@ const daysOfWeek = [
 /* ─── STYLES GLOBAUX ────────────────────────────────────────────────────── */
 const BI_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
-  * { font-family: 'Sora', sans-serif; }
+  * { font-family: 'Sora', sans-serif; box-sizing: border-box; }
   body, #root { background: #0a0f2e; }
 
   .bi-glass {
@@ -63,14 +63,16 @@ const BI_STYLES = `
     font-weight: 600;
     outline: none;
     transition: border-color 0.2s;
+    font-family: 'Sora', sans-serif;
   }
   .bi-input-dark:focus { border-color: rgba(0,200,200,0.45); }
   .bi-day-btn {
-    flex: 1; min-width: 52px; padding: 12px 4px;
+    flex: 1; min-width: 44px; padding: 10px 4px;
     border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);
     color: #475569; font-weight: 800; font-size: 11px;
     text-transform: uppercase; cursor: pointer;
     background: transparent; transition: all 0.15s;
+    font-family: 'Sora', sans-serif;
   }
   .bi-day-btn:hover { border-color: rgba(0,200,200,0.3); color: #94a3b8; }
   .bi-day-btn.selected {
@@ -82,6 +84,7 @@ const BI_STYLES = `
     width: 52px; height: 30px; border-radius: 15px;
     display: flex; align-items: center; padding: 0 4px;
     cursor: pointer; transition: background 0.2s;
+    border: none; flex-shrink: 0;
   }
   .bi-submit-modal {
     flex: 1; padding: 16px;
@@ -90,11 +93,201 @@ const BI_STYLES = `
     font-weight: 800; font-size: 14px;
     text-transform: uppercase; letter-spacing: 0.5px;
     cursor: pointer; transition: all 0.2s;
+    font-family: 'Sora', sans-serif;
   }
   .bi-submit-modal:hover {
     background: #00e0e0;
     box-shadow: 0 8px 28px rgba(0,200,200,0.3);
     transform: translateY(-1px);
+  }
+
+  /* ── NAVBAR ── */
+  .doc-nav-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* ── PAGE HEADER ── */
+  .doc-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  /* ── MAIN GRID ── */
+  .doc-main-grid {
+    display: grid;
+    gap: 20px;
+  }
+
+  /* ── STATS SIDEBAR ── */
+  .stats-sidebar {
+    padding: 28px;
+    border-radius: 24px;
+    border: 1px solid rgba(0,200,200,0.12);
+    position: sticky;
+    top: 96px;
+    align-self: start;
+  }
+
+  /* ── SLOT CARD ROW ── */
+  .slot-card-inner {
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .slot-card-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0; /* allow text truncation */
+    flex: 1;
+  }
+
+  .slot-card-icon {
+    padding: 12px;
+    border-radius: 14px;
+    flex-shrink: 0;
+  }
+
+  .slot-card-text h4 {
+    font-weight: 700;
+    font-size: 16px;
+    color: #fff;
+    font-style: italic;
+    text-transform: capitalize;
+    margin: 0 0 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .slot-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .modal-content {
+    padding: 36px;
+    width: 100%;
+    max-width: 520px;
+    position: relative;
+    z-index: 10;
+    border: 1px solid rgba(0,200,200,0.2);
+    border-radius: 28px;
+  }
+
+  .modal-time-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  /* ══ RESPONSIVE BREAKPOINTS ════════════════════════════════════════════════ */
+
+  /* Mobile : < 640px */
+  @media (max-width: 639px) {
+    .doc-main {
+      padding: 96px 12px 48px !important;
+    }
+    .doc-page-title {
+      font-size: 28px !important;
+    }
+    .doc-page-subtitle {
+      font-size: 13px !important;
+    }
+    .new-slot-btn span {
+      display: none; /* icon only */
+    }
+    .new-slot-btn {
+      padding: 12px !important;
+      border-radius: 14px !important;
+    }
+    .doc-main-grid {
+      grid-template-columns: 1fr !important;
+    }
+    .stats-sidebar {
+      position: static !important;
+      padding: 20px !important;
+    }
+    .stats-number {
+      font-size: 40px !important;
+    }
+    .slot-card-inner {
+      padding: 14px 16px !important;
+    }
+    .slot-card-text h4 {
+      font-size: 14px !important;
+    }
+    .modal-content {
+      padding: 24px 20px !important;
+      border-radius: 20px !important;
+    }
+    .modal-time-grid {
+      grid-template-columns: 1fr !important;
+    }
+    .modal-actions {
+      flex-direction: column !important;
+    }
+    .bi-day-btn {
+      min-width: 36px !important;
+      padding: 8px 2px !important;
+      font-size: 10px !important;
+    }
+  }
+
+  /* Tablette : 640–1023px */
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .doc-main {
+      padding: 104px 20px 48px !important;
+    }
+    .doc-page-title {
+      font-size: 34px !important;
+    }
+    .doc-main-grid {
+      grid-template-columns: 200px 1fr !important;
+    }
+    .stats-number {
+      font-size: 48px !important;
+    }
+  }
+
+  /* Desktop : ≥ 1024px */
+  @media (min-width: 1024px) {
+    .doc-main {
+      padding: 120px 24px 48px !important;
+    }
+    .doc-main-grid {
+      grid-template-columns: 240px 1fr !important;
+    }
   }
 `;
 
@@ -250,18 +443,17 @@ const DoctorDashboard = () => {
         borderBottom: '1px solid rgba(0,200,200,0.1)',
         padding: '14px 24px'
       }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="doc-nav-inner">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ background: '#00c8c8', borderRadius: '12px', padding: '8px', boxShadow: '0 4px 16px rgba(0,200,200,0.25)' }}>
+            <div style={{ background: '#00c8c8', borderRadius: '12px', padding: '8px', boxShadow: '0 4px 16px rgba(0,200,200,0.25)', flexShrink: 0 }}>
               <Activity style={{ color: '#0a0f2e' }} size={20} />
             </div>
-            <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', fontStyle: 'italic', textTransform: 'uppercase' }}>
+            <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', fontStyle: 'italic', textTransform: 'uppercase', margin: 0 }}>
               BI-<span style={{ color: '#00c8c8' }}>AGENDA</span>
             </h1>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {/* Bouton notifications */}
             <motion.button
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.9 }}
               onClick={requestNotificationPermission}
@@ -273,7 +465,6 @@ const DoctorDashboard = () => {
               }}>
               <Bell size={18} />
             </motion.button>
-            {/* Bouton déconnexion */}
             <button
               onClick={() => { auth.signOut(); navigate('/auth'); }}
               style={{
@@ -289,19 +480,20 @@ const DoctorDashboard = () => {
       </nav>
 
       {/* ─── CONTENU PRINCIPAL ──────────────────────────────────────── */}
-      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '120px 24px 48px' }}>
+      <main className="doc-main" style={{ maxWidth: '1280px', margin: '0 auto' }}>
 
         {/* En-tête de page */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '24px', marginBottom: '40px', flexWrap: 'wrap' }}>
+        <div className="doc-page-header">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 800, color: '#fff', letterSpacing: '-1.5px', fontStyle: 'italic', textTransform: 'uppercase', lineHeight: 1.05 }}>
+            <h2 className="doc-page-title" style={{ fontWeight: 800, color: '#fff', letterSpacing: '-1.5px', fontStyle: 'italic', textTransform: 'uppercase', lineHeight: 1.05, margin: 0 }}>
               Mon Planning
             </h2>
-            <p style={{ color: '#475569', fontSize: '15px', marginTop: '6px' }}>
+            <p className="doc-page-subtitle" style={{ color: '#475569', fontSize: '15px', marginTop: '6px', marginBottom: 0 }}>
               Gérez vos disponibilités d'interprétation.
             </p>
           </motion.div>
           <button
+            className="new-slot-btn"
             onClick={() => { setEditingId(null); setShowModal(true); }}
             style={{
               background: '#00c8c8', color: '#0a0f2e',
@@ -309,26 +501,24 @@ const DoctorDashboard = () => {
               fontWeight: 700, fontSize: '14px', cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: '8px',
               boxShadow: '0 8px 28px rgba(0,200,200,0.25)',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s', flexShrink: 0,
+              fontFamily: 'Sora, sans-serif'
             }}
           >
-            <Plus size={20} /> Nouvelle Disponibilité
+            <Plus size={20} />
+            <span>Nouvelle Disponibilité</span>
           </button>
         </div>
 
         {/* Grille principale */}
-        <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '20px' }}>
+        <div className="doc-main-grid">
 
           {/* Colonne statistiques */}
-          <div className="bi-glass" style={{
-            padding: '28px', borderRadius: '24px',
-            border: '1px solid rgba(0,200,200,0.12)',
-            position: 'sticky', top: '96px', alignSelf: 'start'
-          }}>
-            <p style={{ fontSize: '10px', color: '#334155', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
+          <div className="bi-glass stats-sidebar">
+            <p style={{ fontSize: '10px', color: '#334155', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px', marginTop: 0 }}>
               Total Créneaux
             </p>
-            <h3 style={{ fontSize: '56px', fontWeight: 800, color: '#fff', lineHeight: 1, marginBottom: '20px', letterSpacing: '-2px' }}>
+            <h3 className="stats-number" style={{ fontWeight: 800, color: '#fff', lineHeight: 1, marginBottom: '20px', letterSpacing: '-2px', marginTop: 0 }}>
               {slots.length}
             </h3>
             <div style={{
@@ -338,13 +528,13 @@ const DoctorDashboard = () => {
               borderRadius: '12px', padding: '12px',
               color: '#00c864'
             }}>
-              <CheckCircle2 size={16} />
+              <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
               <span style={{ fontSize: '12px', fontWeight: 700 }}>Système synchronisé</span>
             </div>
           </div>
 
           {/* Liste des créneaux */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0 }}>
             <AnimatePresence mode="popLayout">
               {slots.length === 0 ? (
                 <div style={{
@@ -355,7 +545,7 @@ const DoctorDashboard = () => {
                   color: '#334155', textAlign: 'center'
                 }}>
                   <CalIcon size={36} style={{ opacity: 0.3, marginBottom: '16px' }} />
-                  <p style={{ fontSize: '18px', fontWeight: 800, fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.5px' }}>
+                  <p style={{ fontSize: '18px', fontWeight: 800, fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.5px', margin: 0 }}>
                     Aucun créneau planifié
                   </p>
                 </div>
@@ -368,58 +558,61 @@ const DoctorDashboard = () => {
                     exit={{ opacity: 0, scale: 0.96 }}
                     onClick={() => openEditModal(slot)}
                     className="bi-card-slot"
-                    style={{ padding: '18px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      {/* Icône du créneau */}
-                      <div style={{
-                        padding: '12px', borderRadius: '14px',
-                        background: slot.isRecurring ? 'rgba(99,102,241,0.12)' : 'rgba(0,200,200,0.1)',
-                      }}>
-                        {slot.isRecurring
-                          ? <RotateCw size={22} style={{ color: '#818cf8' }} />
-                          : <Clock size={22} style={{ color: '#00c8c8' }} />}
-                      </div>
-                      <div>
-                        <h4 style={{ fontWeight: 700, fontSize: '16px', color: '#fff', fontStyle: 'italic', textTransform: 'capitalize' }}>
-                          {format(parseISO(slot.startTime), 'EEEE d MMMM', { locale: fr })}
-                        </h4>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                          <span style={{
-                            background: 'rgba(255,255,255,0.05)',
-                            color: '#64748b', padding: '3px 10px',
-                            borderRadius: '6px', fontSize: '12px', fontWeight: 600
-                          }}>
-                            {format(parseISO(slot.startTime), 'HH:mm')} — {format(parseISO(slot.endTime), 'HH:mm')}
-                          </span>
-                          {slot.isRecurring && (
+                    <div className="slot-card-inner">
+                      {/* Left side */}
+                      <div className="slot-card-left">
+                        <div className="slot-card-icon" style={{
+                          background: slot.isRecurring ? 'rgba(99,102,241,0.12)' : 'rgba(0,200,200,0.1)',
+                        }}>
+                          {slot.isRecurring
+                            ? <RotateCw size={22} style={{ color: '#818cf8' }} />
+                            : <Clock size={22} style={{ color: '#00c8c8' }} />}
+                        </div>
+                        <div className="slot-card-text" style={{ minWidth: 0, flex: 1 }}>
+                          <h4>
+                            {format(parseISO(slot.startTime), 'EEEE d MMMM', { locale: fr })}
+                          </h4>
+                          <div className="slot-card-meta">
                             <span style={{
-                              background: 'rgba(99,102,241,0.15)',
-                              color: '#818cf8', padding: '2px 8px',
-                              borderRadius: '20px', fontSize: '10px',
-                              fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px'
+                              background: 'rgba(255,255,255,0.05)',
+                              color: '#64748b', padding: '3px 10px',
+                              borderRadius: '6px', fontSize: '12px', fontWeight: 600,
+                              whiteSpace: 'nowrap'
                             }}>
-                              Récurrent
+                              {format(parseISO(slot.startTime), 'HH:mm')} — {format(parseISO(slot.endTime), 'HH:mm')}
                             </span>
-                          )}
+                            {slot.isRecurring && (
+                              <span style={{
+                                background: 'rgba(99,102,241,0.15)',
+                                color: '#818cf8', padding: '2px 8px',
+                                borderRadius: '20px', fontSize: '10px',
+                                fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px',
+                                whiteSpace: 'nowrap'
+                              }}>
+                                Récurrent
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Edit3 size={16} style={{ color: '#334155' }} />
-                      <button
-                        onClick={e => { e.stopPropagation(); handleDelete(slot.id); }}
-                        style={{
-                          padding: '10px', background: 'none', border: 'none',
-                          color: '#334155', cursor: 'pointer', borderRadius: '8px',
-                          transition: 'color 0.2s'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#f43f5e'}
-                        onMouseLeave={e => e.currentTarget.style.color = '#334155'}
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      {/* Right side */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                        <Edit3 size={16} style={{ color: '#334155' }} />
+                        <button
+                          onClick={e => { e.stopPropagation(); handleDelete(slot.id); }}
+                          style={{
+                            padding: '10px', background: 'none', border: 'none',
+                            color: '#334155', cursor: 'pointer', borderRadius: '8px',
+                            transition: 'color 0.2s'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.color = '#f43f5e'}
+                          onMouseLeave={e => e.currentTarget.style.color = '#334155'}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 ))
@@ -432,7 +625,7 @@ const DoctorDashboard = () => {
       {/* ─── MODAL AJOUT / ÉDITION ──────────────────────────────────── */}
       <AnimatePresence>
         {showModal && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div className="modal-backdrop">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -444,21 +637,15 @@ const DoctorDashboard = () => {
             <motion.div
               initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.92, opacity: 0 }}
-              className="bi-glass"
-              style={{
-                padding: '36px', width: '100%', maxWidth: '520px',
-                position: 'relative', zIndex: 10,
-                border: '1px solid rgba(0,200,200,0.2)',
-                borderRadius: '28px'
-              }}
+              className="bi-glass modal-content"
             >
               {/* En-tête modal */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-                <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-1px', fontStyle: 'italic', textTransform: 'uppercase' }}>
+                <h2 style={{ fontSize: 'clamp(20px, 5vw, 26px)', fontWeight: 800, color: '#fff', letterSpacing: '-1px', fontStyle: 'italic', textTransform: 'uppercase', margin: 0 }}>
                   {editingId ? 'Modifier' : 'Nouveau Créneau'}
                 </h2>
                 <button onClick={() => setShowModal(false)}
-                  style={{ padding: '8px', background: 'none', border: 'none', color: '#475569', cursor: 'pointer', borderRadius: '8px' }}>
+                  style={{ padding: '8px', background: 'none', border: 'none', color: '#475569', cursor: 'pointer', borderRadius: '8px', flexShrink: 0 }}>
                   <X size={22} />
                 </button>
               </div>
@@ -470,11 +657,12 @@ const DoctorDashboard = () => {
                   <div style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     padding: '18px 20px', background: 'rgba(255,255,255,0.03)',
-                    borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)'
+                    borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)',
+                    gap: '12px'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
                       <div style={{
-                        padding: '10px', borderRadius: '10px',
+                        padding: '10px', borderRadius: '10px', flexShrink: 0,
                         background: isRecurring ? 'rgba(0,200,200,0.15)' : 'rgba(255,255,255,0.04)'
                       }}>
                         <RotateCw size={18} style={{ color: isRecurring ? '#00c8c8' : '#475569' }} />
@@ -525,7 +713,7 @@ const DoctorDashboard = () => {
                 )}
 
                 {/* Horaires */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="modal-time-grid">
                   <div>
                     <label style={{ fontSize: '10px', color: '#334155', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '6px', paddingLeft: '4px' }}>
                       Début
@@ -543,11 +731,12 @@ const DoctorDashboard = () => {
                 </div>
 
                 {/* Boutons actions */}
-                <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                <div className="modal-actions">
                   <button type="button" onClick={() => setShowModal(false)}
                     style={{
                       flex: 1, padding: '16px', background: 'none', border: 'none',
-                      color: '#475569', fontWeight: 700, cursor: 'pointer', fontSize: '14px'
+                      color: '#475569', fontWeight: 700, cursor: 'pointer', fontSize: '14px',
+                      fontFamily: 'Sora, sans-serif'
                     }}>
                     Annuler
                   </button>

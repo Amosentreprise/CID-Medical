@@ -27,7 +27,7 @@ import toast, { Toaster } from 'react-hot-toast';
 
 const BI_ADMIN_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
-  * { font-family: 'Sora', sans-serif; }
+  * { font-family: 'Sora', sans-serif; box-sizing: border-box; }
   body, #root { background: #0a0f2e; }
 
   .bi-glass {
@@ -62,6 +62,226 @@ const BI_ADMIN_STYLES = `
   .bi-dir-card:hover { border-color: rgba(0,200,200,0.3) !important; }
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* ── NAVBAR ── */
+  .admin-nav-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* ── HEADER SUPERVISION ── */
+  .admin-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 36px;
+  }
+
+  /* ── VIEW TABS ── */
+  .view-tabs {
+    display: flex;
+    margin-top: 16px;
+    gap: 4px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(0,200,200,0.08);
+    border-radius: 14px;
+    padding: 4px;
+    flex-wrap: wrap;
+  }
+
+  /* ── CONTROLS (search + date nav) ── */
+  .admin-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(0,200,200,0.1);
+    border-radius: 14px;
+    padding: 10px 16px;
+    min-width: 220px;
+    flex: 1;
+  }
+  .search-box input {
+    background: none;
+    border: none;
+    outline: none;
+    color: #e2e8f0;
+    font-size: 13px;
+    font-weight: 600;
+    width: 100%;
+    font-family: 'Sora', sans-serif;
+  }
+
+  .date-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0,200,200,0.06);
+    border: 1px solid rgba(0,200,200,0.18);
+    border-radius: 14px;
+    padding: 4px;
+  }
+  .date-nav-btn {
+    padding: 8px 10px;
+    background: none;
+    border: none;
+    color: #00c8c8;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+  }
+  .date-nav-label {
+    text-align: center;
+    padding: 0 12px;
+    min-width: 130px;
+  }
+
+  /* ── LIST / DIRECTORY GRID ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── AGENDA HEADER ── */
+  .agenda-header {
+    padding: 20px 28px;
+    border-bottom: 1px solid rgba(0,200,200,0.08);
+    background: rgba(0,200,200,0.03);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* ── TIMELINE ── */
+  .timeline-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+    padding: 16px 20px;
+    background: rgba(10,15,46,0.6);
+  }
+  .timeline-hour {
+    display: flex;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    height: 96px;
+    position: relative;
+  }
+  .timeline-hour-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-top: -10px;
+    letter-spacing: -0.5px;
+    flex-shrink: 0;
+    /* width set inline per breakpoint */
+  }
+
+  /* ── DIRECTORY CARD ── */
+  .dir-card-actions {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+  }
+
+  /* ══ RESPONSIVE BREAKPOINTS ══════════════════════════════════════════════ */
+
+  /* Mobile : < 640px */
+  @media (max-width: 639px) {
+    .admin-main {
+      padding: 96px 12px 48px !important;
+    }
+    .admin-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .admin-title {
+      font-size: 28px !important;
+    }
+    .view-tabs {
+      overflow-x: auto;
+    }
+    .view-tab-label {
+      display: none;
+    }
+    .admin-controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .search-box {
+      min-width: 0;
+    }
+    .date-nav {
+      justify-content: center;
+    }
+    .date-nav-label {
+      min-width: 110px;
+    }
+    .agenda-container {
+      height: 520px !important;
+    }
+    .agenda-header {
+      padding: 14px 16px !important;
+    }
+    .timeline-wrapper {
+      padding: 12px 10px !important;
+    }
+    .timeline-hour-label {
+      width: 40px !important;
+    }
+    .timeline-col-spacer {
+      /* left offset for slot cards on mobile */
+    }
+    .slot-doctor-name {
+      font-size: 11px !important;
+    }
+    .cards-grid {
+      grid-template-columns: 1fr;
+    }
+    .dir-card-actions {
+      flex-direction: column;
+    }
+  }
+
+  /* Tablette : 640–1023px */
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .admin-main {
+      padding: 104px 20px 48px !important;
+    }
+    .admin-title {
+      font-size: 34px !important;
+    }
+    .agenda-container {
+      height: 620px !important;
+    }
+    .timeline-hour-label {
+      width: 56px !important;
+    }
+  }
+
+  /* Desktop : ≥ 1024px */
+  @media (min-width: 1024px) {
+    .admin-main {
+      padding: 110px 24px 48px !important;
+    }
+    .timeline-hour-label {
+      width: 72px !important;
+    }
+  }
 `;
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -121,15 +341,15 @@ const AdminDashboard = () => {
         borderBottom: '1px solid rgba(0,200,200,0.1)',
         padding: '14px 24px'
       }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="admin-nav-inner">
           <div
             style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
             onClick={() => { setSelectedDate(startOfDay(new Date())); setViewMode('agenda'); }}
           >
-            <div style={{ background: '#00c8c8', borderRadius: '12px', padding: '8px', boxShadow: '0 4px 16px rgba(0,200,200,0.25)' }}>
+            <div style={{ background: '#00c8c8', borderRadius: '12px', padding: '8px', boxShadow: '0 4px 16px rgba(0,200,200,0.25)', flexShrink: 0 }}>
               <Activity style={{ color: '#0a0f2e' }} size={20} />
             </div>
-            <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', fontStyle: 'italic', textTransform: 'uppercase' }}>
+            <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', fontStyle: 'italic', textTransform: 'uppercase', margin: 0 }}>
               BI-<span style={{ color: '#00c8c8' }}>AGENDA</span>
               <span style={{
                 marginLeft: '10px', fontSize: '10px', fontStyle: 'normal',
@@ -143,7 +363,8 @@ const AdminDashboard = () => {
             padding: '10px', borderRadius: '12px',
             background: 'rgba(244,63,94,0.08)', color: '#f43f5e',
             border: '1px solid rgba(244,63,94,0.2)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0
           }}>
             <LogOut size={18} />
           </button>
@@ -151,21 +372,16 @@ const AdminDashboard = () => {
       </nav>
 
       {/* ─── CONTENU PRINCIPAL ─────────────────────────────────────── */}
-      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '110px 24px 48px' }}>
+      <main className="admin-main" style={{ maxWidth: '1280px', margin: '0 auto' }}>
 
         {/* En-tête supervision */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', marginBottom: '36px' }}>
+        <div className="admin-header">
           <div>
-            <h2 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 800, color: '#fff', letterSpacing: '-1.5px', fontStyle: 'italic', textTransform: 'uppercase', lineHeight: 1 }}>
+            <h2 className="admin-title" style={{ fontWeight: 800, color: '#fff', letterSpacing: '-1.5px', fontStyle: 'italic', textTransform: 'uppercase', lineHeight: 1, margin: 0 }}>
               Supervision
             </h2>
             {/* Onglets de vue */}
-            <div style={{
-              display: 'flex', marginTop: '16px', gap: '4px',
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(0,200,200,0.08)',
-              borderRadius: '14px', padding: '4px'
-            }}>
+            <div className="view-tabs">
               {[
                 { id: 'agenda',    icon: <Clock size={13}/>,        label: 'Agenda' },
                 { id: 'calendar',  icon: <FullCalIcon size={13}/>,   label: 'Calendrier' },
@@ -179,40 +395,30 @@ const AdminDashboard = () => {
                     padding: '9px 14px', borderRadius: '10px', border: 'none',
                     fontWeight: 700, fontSize: '11px', textTransform: 'uppercase',
                     letterSpacing: '0.8px', cursor: 'pointer', transition: 'all 0.15s',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap', fontFamily: 'Sora, sans-serif'
                   }}>
-                  {v.icon} {v.label}
+                  {v.icon}
+                  <span className="view-tab-label">{v.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Barre de recherche + navigation date */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
-            <div className="bi-glass" style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              border: '1px solid rgba(0,200,200,0.1)',
-              borderRadius: '14px', padding: '10px 16px', minWidth: '220px'
-            }}>
-              <Search size={16} style={{ color: '#334155' }} />
+          <div className="admin-controls">
+            <div className="bi-glass search-box">
+              <Search size={16} style={{ color: '#334155', flexShrink: 0 }} />
               <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
                 placeholder="Chercher un médecin..."
-                style={{ background: 'none', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: '13px', fontWeight: 600, width: '100%' }} />
+                className="search-input" />
             </div>
 
             {viewMode !== 'directory' && (
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: '4px',
-                background: 'rgba(0,200,200,0.06)',
-                border: '1px solid rgba(0,200,200,0.18)',
-                borderRadius: '14px', padding: '4px'
-              }}>
-                <button onClick={() => setSelectedDate(subDays(selectedDate, 1))} style={{
-                  padding: '8px 10px', background: 'none', border: 'none',
-                  color: '#00c8c8', cursor: 'pointer', borderRadius: '8px',
-                  display: 'flex', alignItems: 'center'
-                }}><ChevronLeft size={18}/></button>
-                <div style={{ textAlign: 'center', padding: '0 12px', minWidth: '130px' }}>
+              <div className="date-nav">
+                <button onClick={() => setSelectedDate(subDays(selectedDate, 1))} className="date-nav-btn">
+                  <ChevronLeft size={18}/>
+                </button>
+                <div className="date-nav-label">
                   <div style={{ fontSize: '9px', fontWeight: 700, color: '#00c8c8', textTransform: 'uppercase', letterSpacing: '2px' }}>
                     {format(selectedDate, 'EEEE', { locale: fr })}
                   </div>
@@ -220,11 +426,9 @@ const AdminDashboard = () => {
                     {format(selectedDate, 'dd MMM yyyy', { locale: fr })}
                   </div>
                 </div>
-                <button onClick={() => setSelectedDate(addDays(selectedDate, 1))} style={{
-                  padding: '8px 10px', background: 'none', border: 'none',
-                  color: '#00c8c8', cursor: 'pointer', borderRadius: '8px',
-                  display: 'flex', alignItems: 'center'
-                }}><ChevronRight size={18}/></button>
+                <button onClick={() => setSelectedDate(addDays(selectedDate, 1))} className="date-nav-btn">
+                  <ChevronRight size={18}/>
+                </button>
               </div>
             )}
           </div>
@@ -246,20 +450,22 @@ const AdminDashboard = () => {
           )}
 
           {viewMode === 'list' && (
-            <motion.div key="list" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-              {filteredSlots.length > 0
-                ? filteredSlots.map((s, i) => <DoctorCard key={s.id} slot={s} index={i} showDate />)
-                : <EmptyState message="Aucune disponibilité." />}
+            <motion.div key="list" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <div className="cards-grid">
+                {filteredSlots.length > 0
+                  ? filteredSlots.map((s, i) => <DoctorCard key={s.id} slot={s} index={i} showDate />)
+                  : <EmptyState message="Aucune disponibilité." />}
+              </div>
             </motion.div>
           )}
 
           {viewMode === 'directory' && (
-            <motion.div key="directory" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-              {filteredDoctors.length > 0
-                ? filteredDoctors.map((doc, i) => <DirectoryCard key={doc.id} doctor={doc} index={i} />)
-                : <EmptyState message="Répertoire vide." />}
+            <motion.div key="directory" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <div className="cards-grid">
+                {filteredDoctors.length > 0
+                  ? filteredDoctors.map((doc, i) => <DirectoryCard key={doc.id} doctor={doc} index={i} />)
+                  : <EmptyState message="Répertoire vide." />}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -279,15 +485,21 @@ const AdminDashboard = () => {
 ══════════════════════════════════════════════════════════════════════════ */
 const AgendaView = ({ slots, selectedDate }) => {
   const hours = Array.from({ length: 24 }, (_, i) => i);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  const [isTablet, setIsTablet] = useState(window.innerWidth >= 640 && window.innerWidth < 1024);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+      setIsTablet(window.innerWidth >= 640 && window.innerWidth < 1024);
+    };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   if (slots.length === 0) return <EmptyState message="Aucun médecin radiologue disponible." />;
+
+  const labelWidth = isMobile ? 40 : isTablet ? 56 : 72;
 
   const processedSlots = slots.map(slot => {
     const start = parseISO(slot.startTime);
@@ -301,23 +513,19 @@ const AgendaView = ({ slots, selectedDate }) => {
   });
 
   return (
-    <div className="bi-glass" style={{
+    <div className="bi-glass agenda-container" style={{
       borderRadius: '24px', border: '1px solid rgba(0,200,200,0.1)',
       overflow: 'hidden', display: 'flex', flexDirection: 'column',
-      height: '680px', boxShadow: '0 24px 64px rgba(0,0,0,0.3)'
+      boxShadow: '0 24px 64px rgba(0,0,0,0.3)'
     }}>
       {/* En-tête */}
-      <div style={{
-        padding: '20px 28px', borderBottom: '1px solid rgba(0,200,200,0.08)',
-        background: 'rgba(0,200,200,0.03)',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-      }}>
-        <h3 style={{ fontWeight: 800, fontSize: '20px', color: '#fff', fontStyle: 'italic', textTransform: 'capitalize', letterSpacing: '-0.5px' }}>
+      <div className="agenda-header">
+        <h3 style={{ fontWeight: 800, fontSize: isMobile ? '16px' : '20px', color: '#fff', fontStyle: 'italic', textTransform: 'capitalize', letterSpacing: '-0.5px', margin: 0 }}>
           {format(selectedDate, 'EEEE dd MMMM', { locale: fr })}
         </h3>
         <div style={{
           padding: '5px 14px', background: 'rgba(0,200,200,0.08)',
-          border: '1px solid rgba(0,200,200,0.2)', borderRadius: '20px'
+          border: '1px solid rgba(0,200,200,0.2)', borderRadius: '20px', flexShrink: 0
         }}>
           <span style={{ fontSize: '10px', fontWeight: 700, color: '#00c8c8', textTransform: 'uppercase', letterSpacing: '2px' }}>
             {slots.length} Doc{slots.length > 1 ? 's' : ''}
@@ -326,10 +534,10 @@ const AgendaView = ({ slots, selectedDate }) => {
       </div>
 
       {/* Timeline */}
-      <div className="scrollbar-hide" style={{ flex: 1, overflowY: 'auto', position: 'relative', padding: '16px 20px', background: 'rgba(10,15,46,0.6)' }}>
+      <div className="scrollbar-hide timeline-wrapper">
         {hours.map(hour => (
-          <div key={hour} style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.04)', height: '96px', position: 'relative' }}>
-            <span style={{ width: isMobile ? '44px' : '72px', fontSize: '10px', fontWeight: 700, color: '#1e293b', marginTop: '-10px', letterSpacing: '-0.5px', flexShrink: 0 }}>
+          <div key={hour} className="timeline-hour">
+            <span className="timeline-hour-label" style={{ width: `${labelWidth}px` }}>
               {hour.toString().padStart(2, '0')}:00
             </span>
             <div style={{ flex: 1, borderLeft: '1px solid rgba(255,255,255,0.06)' }} />
@@ -339,10 +547,15 @@ const AgendaView = ({ slots, selectedDate }) => {
         {processedSlots.map(slot => {
           const top = (slot.start.getHours() * 96) + (slot.start.getMinutes() * 96 / 60) + 24;
           const height = Math.max(((slot.end - slot.start) / (1000 * 60) * 96 / 60), 60);
-          const leftBase = isMobile ? 44 : 72;
-          const availWidth = `calc(100% - ${leftBase + 8}px)`;
-          const width = isMobile ? availWidth : `calc(${slot.colWidth}% - ${leftBase / (100 / slot.colWidth)}px)`;
-          const left = isMobile ? `${leftBase + 4}px` : `calc(${leftBase}px + ${slot.colIndex * slot.colWidth}%)`;
+          const leftBase = labelWidth + 4;
+
+          // Sur mobile : pleine largeur empilée ; sinon colonnes côte à côte
+          const width = isMobile
+            ? `calc(100% - ${leftBase + 4}px)`
+            : `calc(${slot.colWidth}% - 4px)`;
+          const left = isMobile
+            ? `${leftBase}px`
+            : `calc(${labelWidth}px + ${slot.colIndex * slot.colWidth}%)`;
 
           return (
             <motion.div key={slot.id}
@@ -352,10 +565,10 @@ const AgendaView = ({ slots, selectedDate }) => {
               style={{
                 position: 'absolute', top: `${top}px`, height: `${height}px`,
                 left, width, zIndex: 10 + slot.colIndex,
-                borderRadius: '12px', padding: '10px 14px',
+                borderRadius: '12px', padding: isMobile ? '8px 10px' : '10px 14px',
                 boxShadow: '0 8px 24px rgba(0,200,200,0.15)',
                 display: 'flex', flexDirection: 'column', justifyContent: 'center',
-                cursor: 'pointer', minWidth: '100px'
+                cursor: 'pointer', minWidth: '80px', overflow: 'hidden'
               }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px' }}>
                 <Clock size={9} style={{ color: 'rgba(255,255,255,0.7)', flexShrink: 0 }} />
@@ -363,7 +576,13 @@ const AgendaView = ({ slots, selectedDate }) => {
                   {format(slot.start, 'HH:mm')} - {format(slot.end, 'HH:mm')}
                 </span>
               </div>
-              <h4 style={{ fontWeight: 800, color: '#fff', fontSize: isMobile ? '11px' : '14px', textTransform: 'uppercase', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.3px' }}>
+              <h4 className="slot-doctor-name" style={{
+                fontWeight: 800, color: '#fff',
+                fontSize: isMobile ? '11px' : '14px',
+                textTransform: 'uppercase', fontStyle: 'italic',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                letterSpacing: '-0.3px', margin: 0
+              }}>
                 Dr. {slot.doctorName}
               </h4>
             </motion.div>
@@ -393,11 +612,11 @@ const CalendarView = ({ allSlots, selectedDate, onDateClick }) => {
       boxShadow: '0 24px 64px rgba(0,0,0,0.3)'
     }}>
       {/* Navigation mois */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', fontStyle: 'italic', textTransform: 'capitalize', letterSpacing: '-1px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', gap: '12px' }}>
+        <h3 style={{ fontSize: 'clamp(20px, 4vw, 26px)', fontWeight: 800, color: '#fff', fontStyle: 'italic', textTransform: 'capitalize', letterSpacing: '-1px', margin: 0 }}>
           {format(currMonth, 'MMMM yyyy', { locale: fr })}
         </h3>
-        <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(0,200,200,0.1)', borderRadius: '12px', padding: '4px' }}>
+        <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(0,200,200,0.1)', borderRadius: '12px', padding: '4px', flexShrink: 0 }}>
           <button onClick={() => setCurrMonth(subMonths(currMonth, 1))}
             style={{ padding: '8px 10px', background: 'none', border: 'none', color: '#00c8c8', cursor: 'pointer', borderRadius: '8px', display: 'flex' }}>
             <ChevronLeft size={16}/>
@@ -432,7 +651,8 @@ const CalendarView = ({ allSlots, selectedDate, onDateClick }) => {
                 pointerEvents: isCurrentMonth ? 'auto' : 'none',
                 padding: '8px 6px',
                 display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                gap: '4px', border: 'none', cursor: 'pointer'
+                gap: '4px', border: 'none', cursor: 'pointer',
+                overflow: 'hidden'
               }}>
               <span style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? '#00c8c8' : '#475569' }}>
                 {format(day, 'd')}
@@ -476,7 +696,7 @@ const DoctorCard = ({ slot, index, showDate }) => (
       <div style={{
         width: '44px', height: '44px', background: 'rgba(0,200,200,0.1)',
         borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#00c8c8', fontWeight: 800, fontSize: '18px', fontStyle: 'italic'
+        color: '#00c8c8', fontWeight: 800, fontSize: '18px', fontStyle: 'italic', flexShrink: 0
       }}>
         {slot.doctorName?.charAt(0)}
       </div>
@@ -490,7 +710,7 @@ const DoctorCard = ({ slot, index, showDate }) => (
         </span>
       )}
     </div>
-    <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+    <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
       Dr. {slot.doctorName}
     </h4>
     <div style={{
@@ -498,7 +718,7 @@ const DoctorCard = ({ slot, index, showDate }) => (
       background: 'rgba(0,200,200,0.05)', border: '1px solid rgba(0,200,200,0.1)',
       borderRadius: '12px', padding: '12px 16px'
     }}>
-      <Clock size={16} style={{ color: '#00c8c8' }} />
+      <Clock size={16} style={{ color: '#00c8c8', flexShrink: 0 }} />
       <span style={{ fontSize: '15px', fontWeight: 700, color: '#94a3b8' }}>
         {format(parseISO(slot.startTime), 'HH:mm')} — {format(parseISO(slot.endTime), 'HH:mm')}
       </span>
@@ -532,18 +752,18 @@ const DirectoryCard = ({ doctor, index }) => (
       {doctor.fullName?.charAt(0)}
     </div>
 
-    <h4 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.5px', marginBottom: '8px' }}>
+    <h4 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.5px', marginBottom: '8px', margin: '0 0 8px' }}>
       Dr. {doctor.fullName}
     </h4>
     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569', marginBottom: '24px' }}>
-      <Phone size={13} style={{ color: '#00c8c8' }} />
+      <Phone size={13} style={{ color: '#00c8c8', flexShrink: 0 }} />
       <span style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '1px' }}>
         {doctor.phone || '---'}
       </span>
     </div>
 
     {/* Actions */}
-    <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+    <div className="dir-card-actions">
       <a href={`tel:${doctor.phone}`}
         style={{
           flex: 1, background: '#00c8c8', color: '#0a0f2e',
@@ -580,7 +800,7 @@ const EmptyState = ({ message }) => (
     alignItems: 'center', justifyContent: 'center', textAlign: 'center'
   }}>
     <AlertCircle size={30} style={{ color: '#1e293b', marginBottom: '14px' }} />
-    <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.5px' }}>
+    <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: '-0.5px', margin: 0 }}>
       {message}
     </h3>
   </div>
