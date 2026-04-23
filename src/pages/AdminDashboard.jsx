@@ -7,7 +7,8 @@ import { useNavigate } from 'react-router-dom';
 
 import {
   Search, Clock, AlertCircle, LogOut, ChevronRight,
-  ChevronLeft, List, Calendar as FullCalIcon, Users, Phone, Mail, Activity
+  ChevronLeft, List, Calendar as FullCalIcon, Users, Phone, Mail, Activity,
+  Calendar
 } from 'lucide-react';
 import {
   format, parseISO, addDays, subDays, startOfDay,
@@ -347,7 +348,7 @@ const AdminDashboard = () => {
             onClick={() => { setSelectedDate(startOfDay(new Date())); setViewMode('agenda'); }}
           >
             <div style={{ background: '#00c8c8', borderRadius: '12px', padding: '8px', boxShadow: '0 4px 16px rgba(0,200,200,0.25)', flexShrink: 0 }}>
-              <Activity style={{ color: '#0a0f2e' }} size={20} />
+              <Calendar style={{ color: '#0a0f2e' }} size={20} />
             </div>
             <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', fontStyle: 'italic', textTransform: 'uppercase', margin: 0 }}>
               BI-<span style={{ color: '#00c8c8' }}>AGENDA</span>

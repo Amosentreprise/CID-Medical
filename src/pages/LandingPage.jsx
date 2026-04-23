@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
   Activity, Clock, Zap, 
-  ChevronRight, Layers
+  ChevronRight, Layers,
+  Calendar
 } from 'lucide-react';
 
 /* ─── CHARTE BELLE IMAGERIE ───────────────────────────────────────────────
@@ -58,31 +59,8 @@ const LandingPage = () => {
         }
       `}</style>
 
-      {/* Fond avec lumières d'ambiance */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ background: '#0a0f2e' }}>
-        {/* Lumière cyan en haut gauche */}
-        <div style={{
-          position: 'absolute', top: '-5%', left: '-5%',
-          width: '45%', height: '45%',
-          background: 'radial-gradient(circle, rgba(0,200,200,0.08) 0%, transparent 70%)',
-          borderRadius: '50%'
-        }} />
-        {/* Lumière indigo en bas droite */}
-        <div style={{
-          position: 'absolute', bottom: '-10%', right: '-5%',
-          width: '50%', height: '50%',
-          background: 'radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%)',
-          borderRadius: '50%'
-        }} />
-        {/* Petite lumière centrale */}
-        <div style={{
-          position: 'absolute', top: '35%', left: '50%',
-          width: '30%', height: '30%',
-          transform: 'translateX(-50%)',
-          background: 'radial-gradient(circle, rgba(0,200,200,0.04) 0%, transparent 70%)',
-          borderRadius: '50%'
-        }} />
-      </div>
+     
+      
 
       {/* ─── NAVBAR ─────────────────────────────────────────────────────── */}
       <nav className="fixed top-0 w-full z-50 bi-glass px-6 py-4"
@@ -91,7 +69,7 @@ const LandingPage = () => {
           <div className="flex items-center gap-3">
             <div style={{ background: '#00c8c8', borderRadius: '12px', padding: '8px' }}
               className="bi-glow-cyan">
-              <Activity style={{ color: '#0a0f2e' }} size={22} />
+              <Calendar style={{ color: '#0a0f2e' }} size={22} />
             </div>
             <h1 className="text-xl font-black tracking-tighter text-white italic uppercase">
               BI-<span style={{ color: '#00c8c8' }}>AGENDA</span>

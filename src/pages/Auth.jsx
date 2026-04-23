@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { auth, db } from '../services/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
-import { LogIn, UserPlus, Mail, Lock, User, Activity, Phone } from 'lucide-react';
+import { LogIn, UserPlus, Mail, Lock, User, Activity, Phone, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -166,7 +166,7 @@ const Auth = () => {
             marginBottom: '16px',
             boxShadow: '0 8px 32px rgba(0,200,200,0.25)'
           }}>
-            <Activity style={{ color: '#0a0f2e' }} size={28} />
+            <Calendar style={{ color: '#0a0f2e' }} size={28} />
           </div>
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#fff', letterSpacing: '-1px', fontStyle: 'italic', textTransform: 'uppercase' }}>
             BI-<span style={{ color: '#00c8c8' }}>AGENDA</span>

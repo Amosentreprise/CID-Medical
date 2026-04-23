@@ -9,7 +9,7 @@ import {
 } from 'firebase/firestore';
 import {
   Plus, Trash2, Clock, Calendar as CalIcon,
-  RotateCw, LogOut, Activity, CheckCircle2, X, Bell, Edit3
+  RotateCw, LogOut, Activity, CheckCircle2, X, Bell, Edit3, Calendar
 } from 'lucide-react';
 import { format, addWeeks, startOfToday, addDays, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -446,7 +446,7 @@ const DoctorDashboard = () => {
         <div className="doc-nav-inner">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ background: '#00c8c8', borderRadius: '12px', padding: '8px', boxShadow: '0 4px 16px rgba(0,200,200,0.25)', flexShrink: 0 }}>
-              <Activity style={{ color: '#0a0f2e' }} size={20} />
+              <Calendar style={{ color: '#0a0f2e' }} size={20} />
             </div>
             <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', fontStyle: 'italic', textTransform: 'uppercase', margin: 0 }}>
               BI-<span style={{ color: '#00c8c8' }}>AGENDA</span>
